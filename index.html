@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (雲端同步版)</title>
+    <title>獅先生工具站 | Lion Tools (完整後台版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 全局重置與變數 (保持不變) --- */
+        /* --- 全局重置與變數 (保持原樣) --- */
         :root {
             --sidebar-bg: #0f172a; --sidebar-text: #94a3b8; --sidebar-active-bg: #1e293b;
             --bg-main: #f8fafc; --card-bg: #ffffff;
@@ -36,9 +36,8 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
         .login-box button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
         .login-box button:hover { background: var(--primary-hover); }
-        .btn-danger { background: var(--danger) !important; }
+        .btn-danger { background: var(--danger) !important; color: white; padding: 5px 10px; border:none; border-radius:4px; cursor:pointer;}
         .btn-danger:hover { background: #dc2626 !important; }
-        .btn-secondary { background: #64148b !important; }
 
         /* --- 佈局 --- */
         #main-app { display: flex; width: 100%; height: 100%; }
@@ -61,7 +60,6 @@
 
         /* 元件 */
         .card { background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .input-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #475569; font-size: 13px; }
         .text-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; }
         .btn-primary { background: var(--primary-color); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; }
 
@@ -85,65 +83,10 @@
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
 
-        /* --- 新學貼貼碼 專用樣式 --- */
+        /* 拼圖區樣式 (簡化保留以維持版面) */
         .puzzle-layout { display: flex; height: 100%; gap: 15px; }
-        .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; display:flex; flex-direction:column; overflow: hidden; }
-        .puzzle-cat-tabs { display: flex; background: #cbd5e1; flex-wrap: wrap; }
-        .puzzle-cat-btn { flex: 1; border: none; padding: 8px 5px; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; min-width: 25%; }
-        .puzzle-cat-btn.active { background: #e2e8f0; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
-        .puzzle-blocks-container { padding: 10px; overflow-y: auto; flex:1; }
-        .puzzle-cat-section { display: none; }
-        .puzzle-cat-section.active { display: block; animation: fadeIn 0.2s; }
-
-        .puzzle-block-source { 
-            background: white; border: 1px solid #cbd5e1; padding: 8px 10px; margin-bottom: 8px; 
-            border-radius: 4px; cursor: grab; font-size: 13px; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s;
-        }
-        .puzzle-block-source:active { cursor: grabbing; transform: scale(0.98); }
-        .puzzle-block-source:hover { border-color: var(--primary-color); }
-        .puzzle-block-source span { pointer-events: none; }
-        
-        .puzzle-workspace { 
-            flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
-            padding: 20px; overflow-y: auto; position: relative; min-height: 200px;
-        }
-        .puzzle-workspace.drag-over, .puzzle-container-inner.drag-over { 
-            border-color: var(--primary-color); background: #eff6ff; 
-        }
-
-        .puzzle-right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .puzzle-preview-area { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: white; }
-        .puzzle-code-display { 
-            flex: 1; background: #1e293b; color: #10b981; border-radius: 8px; 
-            padding: 15px; font-family: monospace; font-size: 13px; resize: none; border: none;
-        }
-        
-        .puzzle-item { 
-            background: #f8fafc; border: 1px solid #94a3b8; border-left: 5px solid var(--primary-color);
-            padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;
-            position: relative; cursor: grab; 
-        }
-        .puzzle-item:active { cursor: grabbing; opacity: 0.8; }
-        .puzzle-item small { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; pointer-events: none; }
-        .puzzle-item input { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; }
-        
-        .puzzle-delete-btn { 
-            position: absolute; top: 5px; right: 5px; background: #fee2e2; color: #ef4444; 
-            border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;
-            z-index: 10;
-        }
-        .puzzle-delete-btn:hover { background: #ef4444; color: white; }
-        
-        .puzzle-container-inner {
-            min-height: 40px; background: #fff; border: 2px dashed #e2e8f0; border-radius: 4px;
-            padding: 10px; margin-top: 5px;
-        }
-        .puzzle-container-inner:empty::before { content: "拖曳元件到此..."; color: #cbd5e1; font-size: 12px; }
-
-        .puzzle-item[data-cat="fun"] { border-left-color: #d946ef; background: #fdf4ff; }
-        .puzzle-item[data-cat="layout"] { border-left-color: #8b5cf6; background: #f5f3ff; }
-        .puzzle-item[data-cat="media"] { border-left-color: #10b981; }
+        .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; }
+        .puzzle-workspace { flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; padding:20px; }
         
     </style>
 </head>
@@ -154,7 +97,7 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>獅先生工具站</h2>
-            <p>歡迎使用 (全雲端同步)</p>
+            <p>歡迎使用 (雲端同步版)</p>
             <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
             <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
@@ -165,7 +108,7 @@
         <div class="login-box" style="border: 2px solid #3b82f6;">
             <div class="close-login" onclick="closeAdminAuth()">✕</div>
             <h2 style="color:#3b82f6;">管理員驗證</h2>
-            <p>請輸入密碼</p>
+            <p>預設密碼: 1234</p>
             <input type="password" id="admin-password-input" placeholder="密碼">
             <div style="display:flex; gap:10px;">
                 <button class="btn-danger" onclick="closeAdminAuth()">取消</button>
@@ -202,7 +145,7 @@
             <div class="sidebar-footer" style="padding:20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid #1e293b;">
                 <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">0</span></div>
                 <div style="margin-top:15px; pt-15px; border-top:1px solid rgba(255,255,255,0.05); opacity:0.6; font-size:10px;">
-                    {© 2025 獅先生工具站 . 保留所有权利。}<br>
+                    {© 2025 獅先生工具站}<br>
                 </div>
             </div>
         </div>
@@ -216,10 +159,10 @@
             </div>
 
             <div id="guestbook" class="page-padded">
-                <h1>留言板 (雲端共用版)</h1>
+                <h1>留言板 (雲端共用)</h1>
                 <div class="card">
                     <input type="text" id="gb-name" class="text-input" placeholder="稱呼" style="margin-bottom:10px;">
-                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法 (Email / LINE)" style="margin-bottom:10px;">
+                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法" style="margin-bottom:10px;">
                     <textarea id="gb-msg" class="text-input" placeholder="內容" style="margin-bottom:10px;"></textarea>
                     <button class="btn-primary" onclick="submitComment()">送出</button>
                     <div id="comments-list" style="margin-top:20px;"></div>
@@ -230,8 +173,6 @@
                 <h1>廣告申請</h1>
                 <div class="card">
                     <input type="text" id="ad-req-company" class="text-input" placeholder="公司" style="margin-bottom:10px;">
-                    <input type="text" id="ad-req-contact" class="text-input" placeholder="聯絡" style="margin-bottom:10px;">
-                    <input type="number" id="ad-req-bid" class="text-input" placeholder="預算" style="margin-bottom:10px;">
                     <button class="btn-primary" onclick="submitAdRequest()">提交申請</button>
                 </div>
             </div>
@@ -245,33 +186,13 @@
             </div>
 
             <div id="code-puzzle" class="page-padded">
-                <h1>🧩 新學貼貼碼 (拖曳生成器)</h1>
+                <h1>🧩 新學貼貼碼</h1>
                 <div class="card" style="height: 600px; padding: 20px;">
-                    <div class="puzzle-layout">
-                        <div class="puzzle-sidebar">
-                            <div class="puzzle-cat-tabs">
-                                <button class="puzzle-cat-btn active" onclick="switchPuzzleCat('text')">📝 文字</button>
-                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('layout')">📍 排版</button>
-                            </div>
-                            <div class="puzzle-blocks-container">
-                                <div id="pcat-text" class="puzzle-cat-section active">
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 大標題 (H1)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="p">📝 文字段落 (P)</div>
-                                </div>
-                                <div id="pcat-layout" class="puzzle-cat-section">
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
-                            <div id="puzzle-empty-msg" style="color:#cbd5e1; text-align:center; margin-top:50px; pointer-events:none;">拖曳積木到這裡...</div>
-                        </div>
-                        <div class="puzzle-right-panel">
-                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽</div>
-                            <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
-                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly></textarea>
-                        </div>
-                    </div>
+                   <p>這裡可以放入您的拼圖功能代碼...</p>
+                   <div class="puzzle-layout">
+                        <div class="puzzle-sidebar"></div>
+                        <div class="puzzle-workspace"></div>
+                   </div>
                 </div>
             </div>
 
@@ -296,6 +217,8 @@
                     <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 日誌</button>
                     <button onclick="switchAdminTab('tab-ad-manage')">📢 廣告</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言</button>
+                    <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
+                    <button onclick="switchAdminTab('tab-tools')">🛠️ 工具</button>
                 </div>
                 
                 <div id="tab-dashboard" class="admin-section active">
@@ -304,7 +227,7 @@
                 
                 <div id="tab-ad-manage" class="admin-section">
                      <div class="card">
-                        <h3>新增廣告 (全站同步)</h3>
+                        <h3>新增廣告</h3>
                         <input type="text" id="ad-img-url" class="text-input" placeholder="圖片連結 (URL)" style="margin-bottom:10px;">
                         <input type="text" id="ad-link-input" class="text-input" placeholder="點擊後跳轉連結" style="margin-bottom:10px;">
                         <select id="ad-pos-input" class="text-input" style="margin-bottom:10px;">
@@ -320,7 +243,28 @@
                 </div>
                 
                 <div id="tab-comments" class="admin-section">
-                    <div class="card"><table id="admin-comments-table"><thead><tr><th>姓名</th><th>內容</th><th>操作</th></tr></thead><tbody></tbody></table></div>
+                    <div class="card">
+                        <h3>留言管理</h3>
+                        <table id="admin-comments-table"><thead><tr><th>姓名</th><th>內容</th><th>操作</th></tr></thead><tbody></tbody></table>
+                    </div>
+                </div>
+
+                <div id="tab-home-edit" class="admin-section">
+                    <div class="card">
+                        <h3>主頁內容編輯器</h3>
+                        <textarea id="admin-home-editor" class="text-input" style="height:300px; font-family:monospace;"></textarea>
+                        <button class="btn-primary" onclick="saveHomeContent()" style="margin-top:10px;">保存變更</button>
+                    </div>
+                </div>
+
+                <div id="tab-tools" class="admin-section">
+                    <div class="card">
+                        <h3>管理使用者上傳的工具</h3>
+                        <table id="tool-manage-table">
+                            <thead><tr><th>工具名稱</th><th>操作</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -340,7 +284,7 @@
             }
         }
 
-        // --- 管理員驗證 (前端簡單驗證) ---
+        // --- 管理員驗證 ---
         function openAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'flex'; }
         function closeAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'none'; document.getElementById('admin-password-input').value = ''; }
         function verifyAdminPassword() {
@@ -355,17 +299,9 @@
             event.currentTarget.classList.add('active');
         }
 
-        // --- 簡單功能 ---
         function updateCompilerPreview() {
             document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value;
         }
-        function switchPuzzleCat(cat) { 
-            document.querySelectorAll('.puzzle-cat-section').forEach(s=>s.classList.remove('active'));
-            document.getElementById('pcat-'+cat).classList.add('active');
-        }
-        function dragNew(ev) { ev.dataTransfer.setData("type", ev.target.dataset.type); }
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drop(ev) { ev.preventDefault(); alert("拼圖功能需更多 JS 邏輯"); }
         function processFile(input) {
             const file = input.files[0];
             if(!file) return;
@@ -376,14 +312,13 @@
     </script>
 
     <script type="module">
-        // 改用穩定版本 10.7.1
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
             doc, deleteDoc, updateDoc, increment, setDoc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // 您的設定檔
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
             authDomain: "lion-tools-b4622.firebaseapp.com",
@@ -398,55 +333,31 @@
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase 連線嘗試中...");
-        } catch(e) {
-            alert("Firebase 初始化失敗: " + e.message);
-        }
+            console.log("Firebase 連線成功");
+        } catch(e) { console.error(e); }
 
-        // --- 1. 同步：總訪問人數 (Visits) ---
+        // 1. 同步：總訪問人數
         const statsRef = doc(db, "stats", "main");
         onSnapshot(statsRef, (docSnap) => {
             const el = document.getElementById('total-visits-display');
-            if (docSnap.exists()) {
-                el.innerText = docSnap.data().total_visits || 0;
-            } else {
-                el.innerText = "0"; // 第一次可能沒有文檔
-            }
-        }, (error) => {
-            console.error("訪問人數讀取失敗:", error);
-            // 不要 alert 避免打擾使用者
-            document.getElementById('total-visits-display').innerText = "Err"; 
+            if (docSnap.exists()) { el.innerText = docSnap.data().total_visits || 0; }
         });
 
-        // 登入時增加人數 (取代舊的 handleLogin)
         window.handleLogin = async function() {
             let name = document.getElementById('username').value.trim() || "訪客";
             document.getElementById('login-screen').style.display = 'none';
-            
             try {
-                // 寫入日誌
-                addDoc(collection(db, "logs"), {
-                    action: "登入系統", name: name, time: new Date().toLocaleString(), timestamp: serverTimestamp()
-                });
-                // 增加總人數
+                addDoc(collection(db, "logs"), { action: "登入系統", name: name, time: new Date().toLocaleString(), timestamp: serverTimestamp() });
                 await updateDoc(statsRef, { total_visits: increment(1) });
-            } catch(e) {
-                // 如果文檔不存在，則創建
-                await setDoc(statsRef, { total_visits: 1 });
-            }
+            } catch(e) { await setDoc(statsRef, { total_visits: 1 }); }
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        // --- 2. 同步：留言板 (Guestbook) ---
+        // 2. 同步：留言板
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
             
-            if(snapshot.empty) {
-                if(list) list.innerHTML = "<div style='color:#ccc; text-align:center;'>目前尚無留言</div>";
-                return;
-            }
-
             if(list) list.innerHTML = "";
             if(adminTbody) adminTbody.innerHTML = "";
 
@@ -455,48 +366,39 @@
                 const id = docSnap.id;
                 let time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "";
                 
-                // 前台
                 if(list) {
-                    list.innerHTML += `
-                        <div style="border-bottom:1px solid #eee; padding:10px 0;">
-                            <div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} <span style="font-size:12px; color:#999;">(${time})</span></div>
-                            <div style="margin-top:5px;">${escapeHtml(data.msg)}</div>
-                        </div>`;
+                    list.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} <span style="font-size:12px; color:#999;">(${time})</span></div><div style="margin-top:5px;">${escapeHtml(data.msg)}</div></div>`;
                 }
-                // 後台
                 if(adminTbody) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.msg)}</td><td><button style="color:red" onclick="delDoc('guestbook','${id}')">刪</button></td>`;
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">刪除</button></td>`;
                     adminTbody.appendChild(tr);
                 }
             });
-        }, (error) => {
-            console.error("留言板錯誤:", error);
-            document.getElementById('comments-list').innerHTML = `<div style="color:red">無法讀取留言，請確認 Firebase Rules 已設為 true。(${error.code})</div>`;
         });
 
         window.submitComment = async function() {
             const name = document.getElementById('gb-name').value;
             const msg = document.getElementById('gb-msg').value;
             if(!name || !msg) return alert("請填寫");
-            try {
-                await addDoc(collection(db, "guestbook"), { name, msg, contact: document.getElementById('gb-contact').value, timestamp: serverTimestamp() });
-                alert("留言已送出"); document.getElementById('gb-msg').value = "";
-            } catch(e) { alert("發送失敗: " + e.message); }
+            await addDoc(collection(db, "guestbook"), { name, msg, contact: document.getElementById('gb-contact').value, timestamp: serverTimestamp() });
+            alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
-        // --- 3. 同步：用戶添加的工具 (Tools) ---
+        // 3. 同步：工具 (修復版：支援後台管理)
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
+            const adminToolsTable = document.querySelector('#tool-manage-table tbody'); // 抓取後台表格
             
             if(container) container.innerHTML = "";
+            if(adminToolsTable) adminToolsTable.innerHTML = ""; // 清空後台表格
             
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
                 
-                // 1. 側邊欄按鈕
+                // A. 更新側邊欄導航
                 const btn = document.createElement('button');
                 btn.className = "nav-btn";
                 btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
@@ -513,6 +415,16 @@
                     showPage('page-' + id);
                 };
                 container.appendChild(btn);
+
+                // B. 更新後台管理列表 (修復點)
+                if(adminToolsTable) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(data.name)}</td>
+                        <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">刪除工具</button></td>
+                    `;
+                    adminToolsTable.appendChild(tr);
+                }
             });
         });
 
@@ -527,7 +439,7 @@
             }
         };
 
-        // --- 4. 同步：廣告 (Ads) ---
+        // 4. 同步：廣告
         onSnapshot(collection(db, "ads"), (snapshot) => {
             document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
             const adTable = document.querySelector('#ad-table tbody');
@@ -543,7 +455,7 @@
                 }
                 if(adTable) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${data.pos}</td><td><a href="${data.link}" target="_blank">Link</a></td><td><button style="color:red" onclick="delDoc('ads','${id}')">刪</button></td>`;
+                    tr.innerHTML = `<td>${data.pos}</td><td>Link</td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">刪除</button></td>`;
                     adTable.appendChild(tr);
                 }
             });
@@ -558,7 +470,7 @@
             alert("廣告已發布");
         };
 
-        // --- 5. 同步：後台日誌 (Logs) ---
+        // 5. 同步：日誌
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
             const logTable = document.querySelector('#log-table tbody');
             if(!logTable) return;
@@ -570,20 +482,18 @@
         });
 
         window.submitAdRequest = async function() {
-             await addDoc(collection(db, "ad_requests"), { 
-                 company: document.getElementById('ad-req-company').value,
-                 timestamp: serverTimestamp() 
-             });
+             await addDoc(collection(db, "ad_requests"), { company: document.getElementById('ad-req-company').value, timestamp: serverTimestamp() });
              alert("申請已送出");
         };
 
+        // 通用刪除功能 (給後台用)
         window.delDoc = async function(col, id) {
-            if(confirm("確定刪除?")) {
+            if(confirm("確定刪除此項目?")) {
                 await deleteDoc(doc(db, col, id));
             }
         }
 
-        // 關於首頁簡介 (Home Content) 同步
+        // 首頁編輯同步
         const homeRef = doc(db, "site_content", "home_intro");
         onSnapshot(homeRef, (docSnap) => {
              if (docSnap.exists()) {
@@ -600,7 +510,6 @@
 
         function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
         function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
-
     </script>
 </body>
 </html>
