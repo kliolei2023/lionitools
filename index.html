@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (完整後台版)</title>
+    <title>獅先生工具站 | Lion Tools (全功能後台版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 全局重置與變數 (保持原樣) --- */
+        /* --- 全局重置與變數 --- */
         :root {
             --sidebar-bg: #0f172a; --sidebar-text: #94a3b8; --sidebar-active-bg: #1e293b;
             --bg-main: #f8fafc; --card-bg: #ffffff;
@@ -18,7 +18,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         body { width: 100%; height: 100vh; overflow: hidden; background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; }
 
-        /* --- 彈窗系統 --- */
+        /* --- 彈窗 --- */
         #login-screen, #admin-auth-screen {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); 
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -32,12 +32,14 @@
         }
         .close-login { position: absolute; top: 16px; right: 20px; font-size: 20px; color: #cbd5e1; cursor: pointer; }
         .close-login:hover { color: var(--danger); }
-        .login-box h2 { margin-bottom: 8px; color: #1e299b; font-size: 24px; }
         .login-box input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
         .login-box button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
-        .login-box button:hover { background: var(--primary-hover); }
-        .btn-danger { background: var(--danger) !important; color: white; padding: 5px 10px; border:none; border-radius:4px; cursor:pointer;}
-        .btn-danger:hover { background: #dc2626 !important; }
+        
+        /* 按鈕樣式 */
+        .btn-primary { background: var(--primary-color); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-danger { background: var(--danger); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #64748b; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
         /* --- 佈局 --- */
         #main-app { display: flex; width: 100%; height: 100%; }
@@ -60,18 +62,17 @@
 
         /* 元件 */
         .card { background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .text-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; }
-        .btn-primary { background: var(--primary-color); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; }
-
+        .text-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; margin-bottom: 10px; }
+        
         /* 表格 */
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #f1f5f9; color: #64748b; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f1f5f9; color: #64748b; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
         /* 後台 Tab */
-        .admin-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
-        .admin-tabs button { background: none; border: none; padding: 12px 20px; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; }
-        .admin-tabs button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .admin-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; overflow-x: auto; }
+        .admin-tabs button { background: none; border: none; padding: 12px 20px; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .admin-tabs button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: bold; }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
         
@@ -83,11 +84,10 @@
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
 
-        /* 拼圖區樣式 (簡化保留以維持版面) */
+        /* 拼圖區 (簡化) */
         .puzzle-layout { display: flex; height: 100%; gap: 15px; }
         .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; }
         .puzzle-workspace { flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; padding:20px; }
-        
     </style>
 </head>
 <body>
@@ -97,7 +97,7 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>獅先生工具站</h2>
-            <p>歡迎使用 (雲端同步版)</p>
+            <p>歡迎使用 (全功能版)</p>
             <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
             <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
@@ -108,11 +108,11 @@
         <div class="login-box" style="border: 2px solid #3b82f6;">
             <div class="close-login" onclick="closeAdminAuth()">✕</div>
             <h2 style="color:#3b82f6;">管理員驗證</h2>
-            <p>預設密碼: 1234</p>
+            <p>請輸入密碼</p>
             <input type="password" id="admin-password-input" placeholder="密碼">
             <div style="display:flex; gap:10px;">
-                <button class="btn-danger" onclick="closeAdminAuth()">取消</button>
-                <button onclick="verifyAdminPassword()">確認</button>
+                <button class="btn-danger" style="width:100%" onclick="closeAdminAuth()">取消</button>
+                <button class="btn-primary" style="width:100%" onclick="verifyAdminPassword()">確認</button>
             </div>
         </div>
     </div>
@@ -134,10 +134,10 @@
                 <button class="nav-btn" onclick="showPage('ad-center')">📢 廣告申請</button>
 
                 <div class="nav-category">管理者</div>
-                <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒</button>
+                <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒 後台管理</button>
                 
                 <div style="margin:15px 0; border-top:1px solid #334155;"></div>
-                <div class="nav-category">來自所有人的系統創作 (雲端)</div>
+                <div class="nav-category">來自所有人的系統創作</div>
                 <div id="dynamic-nav-container"></div>
                 
                 <div id="ad-pos-sidebar-bottom" class="ad-slot"></div>
@@ -159,11 +159,11 @@
             </div>
 
             <div id="guestbook" class="page-padded">
-                <h1>留言板 (雲端共用)</h1>
+                <h1>留言板</h1>
                 <div class="card">
-                    <input type="text" id="gb-name" class="text-input" placeholder="稱呼" style="margin-bottom:10px;">
-                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法" style="margin-bottom:10px;">
-                    <textarea id="gb-msg" class="text-input" placeholder="內容" style="margin-bottom:10px;"></textarea>
+                    <input type="text" id="gb-name" class="text-input" placeholder="稱呼">
+                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法 (Email / LINE)">
+                    <textarea id="gb-msg" class="text-input" placeholder="內容"></textarea>
                     <button class="btn-primary" onclick="submitComment()">送出</button>
                     <div id="comments-list" style="margin-top:20px;"></div>
                 </div>
@@ -172,7 +172,9 @@
             <div id="ad-center" class="page-padded">
                 <h1>廣告申請</h1>
                 <div class="card">
-                    <input type="text" id="ad-req-company" class="text-input" placeholder="公司" style="margin-bottom:10px;">
+                    <input type="text" id="ad-req-company" class="text-input" placeholder="公司">
+                    <input type="text" id="ad-req-contact" class="text-input" placeholder="聯絡">
+                    <input type="number" id="ad-req-bid" class="text-input" placeholder="預算">
                     <button class="btn-primary" onclick="submitAdRequest()">提交申請</button>
                 </div>
             </div>
@@ -188,9 +190,8 @@
             <div id="code-puzzle" class="page-padded">
                 <h1>🧩 新學貼貼碼</h1>
                 <div class="card" style="height: 600px; padding: 20px;">
-                   <p>這裡可以放入您的拼圖功能代碼...</p>
                    <div class="puzzle-layout">
-                        <div class="puzzle-sidebar"></div>
+                        <div class="puzzle-sidebar" style="padding:10px; color:#555; font-size:12px;">(功能保留區塊)</div>
                         <div class="puzzle-workspace"></div>
                    </div>
                 </div>
@@ -202,64 +203,98 @@
                 <div class="card">
                     <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #ccc; padding:20px; text-align:center; cursor:pointer;">📂 上傳檔案</div>
                     <input type="file" id="file-uploader" hidden onchange="processFile(this)">
-                    <input type="text" id="new-tool-name" class="text-input" placeholder="工具名稱" style="margin:10px 0;">
+                    <input type="text" id="new-tool-name" class="text-input" placeholder="工具名稱">
                     <textarea id="new-tool-code" class="text-input" style="height:150px; font-family:monospace;" placeholder="HTML代碼"></textarea>
-                    <button class="btn-primary" onclick="userAddNewTool()" style="margin-top:10px;">生成並同步工具</button>
+                    <button class="btn-primary" onclick="userAddNewTool()">生成並同步工具</button>
                 </div>
             </div>
 
             <div id="admin" class="page-padded">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h1>後台管理 (雲端同步)</h1>
+                    <h1>後台管理</h1>
                     <span style="font-size:12px; background:#e2e8f0; padding:5px; border-radius:4px;">Admin</span>
                 </div>
                 <div class="admin-tabs">
-                    <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 日誌</button>
-                    <button onclick="switchAdminTab('tab-ad-manage')">📢 廣告</button>
+                    <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 總覽 (日誌)</button>
+                    <button onclick="switchAdminTab('tab-ad-manage')">📢 投放</button>
+                    <button onclick="switchAdminTab('tab-ads-req')">💰 申請</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言</button>
                     <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
                     <button onclick="switchAdminTab('tab-tools')">🛠️ 工具</button>
                 </div>
                 
                 <div id="tab-dashboard" class="admin-section active">
-                    <div class="card"><h3>系統日誌</h3><div style="max-height:300px; overflow-y:auto;"><table id="log-table"><tbody></tbody></table></div></div>
+                    <div class="card">
+                        <h3>系統日誌</h3>
+                        <div style="max-height:400px; overflow-y:auto;">
+                            <table id="log-table">
+                                <thead><tr><th>時間</th><th>用戶</th><th>動作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 
                 <div id="tab-ad-manage" class="admin-section">
                      <div class="card">
                         <h3>新增廣告</h3>
-                        <input type="text" id="ad-img-url" class="text-input" placeholder="圖片連結 (URL)" style="margin-bottom:10px;">
-                        <input type="text" id="ad-link-input" class="text-input" placeholder="點擊後跳轉連結" style="margin-bottom:10px;">
-                        <select id="ad-pos-input" class="text-input" style="margin-bottom:10px;">
-                            <option value="login-screen">登入畫面 (下方)</option>
-                            <option value="sidebar-top">側邊欄 (上)</option>
-                            <option value="sidebar-bottom">側邊欄 (下)</option>
-                            <option value="content-top">內容區 (頂)</option>
-                        </select>
-                        <button class="btn-primary" onclick="addAd()">發布廣告</button>
-                        <h3 style="margin-top:20px;">管理廣告</h3>
-                        <table id="ad-table"><thead><tr><th>位置</th><th>連結</th><th>操作</th></tr></thead><tbody></tbody></table>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <input type="text" id="ad-img-url" class="text-input" placeholder="圖片連結 (URL)" style="flex:1;">
+                            <input type="text" id="ad-link-input" class="text-input" placeholder="跳轉連結" style="flex:1;">
+                            <select id="ad-pos-input" class="text-input" style="width:200px;">
+                                <option value="login-screen">登入畫面 (下方)</option>
+                                <option value="sidebar-top">側邊欄 (上)</option>
+                                <option value="sidebar-bottom">側邊欄 (下)</option>
+                                <option value="content-top">內容區 (頂)</option>
+                            </select>
+                            <button class="btn-primary" onclick="addAd()" style="height:45px;">發布</button>
+                        </div>
+                        
+                        <h3 style="margin-top:20px;">已發布</h3>
+                        <table id="ad-table"><thead><tr><th>位置</th><th>圖片/連結</th><th>操作</th></tr></thead><tbody></tbody></table>
+                    </div>
+                </div>
+
+                <div id="tab-ads-req" class="admin-section">
+                    <div class="card">
+                        <h3>廣告申請列表</h3>
+                        <table id="ad-req-table">
+                            <thead><tr><th>公司</th><th>聯絡</th><th>預算</th><th>時間</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
                 
                 <div id="tab-comments" class="admin-section">
                     <div class="card">
                         <h3>留言管理</h3>
-                        <table id="admin-comments-table"><thead><tr><th>姓名</th><th>內容</th><th>操作</th></tr></thead><tbody></tbody></table>
+                        <table id="admin-comments-table">
+                            <thead><tr><th>姓名</th><th>聯絡方法</th><th>內容</th><th>操作</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
 
                 <div id="tab-home-edit" class="admin-section">
                     <div class="card">
                         <h3>主頁內容編輯器</h3>
+                        <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd; display:flex; gap:10px; align-items:center;">
+                            <span style="font-size:12px; font-weight:bold;">插入圖片控制:</span>
+                            <button class="btn-secondary" onclick="insertExternalImg()">🔗 插入外部連結(推薦)</button>
+                            <input type="file" id="home-img-upload" style="display:none" onchange="processHomeImage(this)">
+                            <button class="btn-secondary" onclick="document.getElementById('home-img-upload').click()">📂 上傳小圖 (&lt;300KB)</button>
+                        </div>
                         <textarea id="admin-home-editor" class="text-input" style="height:300px; font-family:monospace;"></textarea>
-                        <button class="btn-primary" onclick="saveHomeContent()" style="margin-top:10px;">保存變更</button>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
+                            <button class="btn-primary" onclick="saveHomeContent()">保存變更</button>
+                            <button class="btn-danger" onclick="clearHomeEditor()">🗑️ 一鍵清空</button>
+                        </div>
                     </div>
                 </div>
 
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3>管理使用者上傳的工具</h3>
+                        <h3>管理使用者工具</h3>
                         <table id="tool-manage-table">
                             <thead><tr><th>工具名稱</th><th>操作</th></tr></thead>
                             <tbody></tbody>
@@ -299,15 +334,36 @@
             event.currentTarget.classList.add('active');
         }
 
-        function updateCompilerPreview() {
-            document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value;
-        }
+        // --- 功能函式 ---
+        function updateCompilerPreview() { document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value; }
         function processFile(input) {
             const file = input.files[0];
             if(!file) return;
             const reader = new FileReader();
             reader.onload = function(e) { document.getElementById('new-tool-code').value = e.target.result; };
             reader.readAsText(file);
+        }
+        // 主頁編輯器功能
+        function insertExternalImg() {
+            const url = prompt("請輸入圖片網址 (URL):");
+            if(url) {
+                const ta = document.getElementById('admin-home-editor');
+                ta.value += `\n<img src="${url}" style="max-width:100%; border-radius:8px; margin:10px 0;">\n`;
+            }
+        }
+        function processHomeImage(input) {
+            const file = input.files[0];
+            if(!file) return;
+            if(file.size > 300 * 1024) { alert("圖片太大了！請小於 300KB"); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const ta = document.getElementById('admin-home-editor');
+                ta.value += `\n<img src="${e.target.result}" style="max-width:100%; border-radius:8px; margin:10px 0;">\n`;
+            };
+            reader.readAsDataURL(file);
+        }
+        function clearHomeEditor() {
+            if(confirm("確定要清空嗎？")) document.getElementById('admin-home-editor').value = "";
         }
     </script>
 
@@ -318,7 +374,6 @@
             doc, deleteDoc, updateDoc, increment, setDoc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 您的設定檔
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
             authDomain: "lion-tools-b4622.firebaseapp.com",
@@ -336,13 +391,13 @@
             console.log("Firebase 連線成功");
         } catch(e) { console.error(e); }
 
-        // 1. 同步：總訪問人數
+        // --- 1. 同步：總訪問人數 & 日誌 ---
         const statsRef = doc(db, "stats", "main");
         onSnapshot(statsRef, (docSnap) => {
-            const el = document.getElementById('total-visits-display');
-            if (docSnap.exists()) { el.innerText = docSnap.data().total_visits || 0; }
+            if (docSnap.exists()) { document.getElementById('total-visits-display').innerText = docSnap.data().total_visits || 0; }
         });
 
+        // 登入邏輯
         window.handleLogin = async function() {
             let name = document.getElementById('username').value.trim() || "訪客";
             document.getElementById('login-screen').style.display = 'none';
@@ -353,7 +408,18 @@
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        // 2. 同步：留言板
+        // 總覽日誌 (Dashboard)
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
+            const logTable = document.querySelector('#log-table tbody');
+            if(!logTable) return;
+            logTable.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                logTable.innerHTML += `<tr><td>${data.time}</td><td>${escapeHtml(data.name)}</td><td>${data.action}</td></tr>`;
+            });
+        });
+
+        // --- 2. 同步：留言板 ---
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
@@ -366,17 +432,18 @@
                 const id = docSnap.id;
                 let time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "";
                 
+                // 前台
                 if(list) {
                     list.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} <span style="font-size:12px; color:#999;">(${time})</span></div><div style="margin-top:5px;">${escapeHtml(data.msg)}</div></div>`;
                 }
+                // 後台
                 if(adminTbody) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">刪除</button></td>`;
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.contact)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">Del</button></td>`;
                     adminTbody.appendChild(tr);
                 }
             });
         });
-
         window.submitComment = async function() {
             const name = document.getElementById('gb-name').value;
             const msg = document.getElementById('gb-msg').value;
@@ -385,20 +452,20 @@
             alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
-        // 3. 同步：工具 (修復版：支援後台管理)
+        // --- 3. 同步：工具 & 工具後台 ---
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
-            const adminToolsTable = document.querySelector('#tool-manage-table tbody'); // 抓取後台表格
+            const adminToolsTable = document.querySelector('#tool-manage-table tbody');
             
             if(container) container.innerHTML = "";
-            if(adminToolsTable) adminToolsTable.innerHTML = ""; // 清空後台表格
+            if(adminToolsTable) adminToolsTable.innerHTML = "";
             
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
                 
-                // A. 更新側邊欄導航
+                // 側邊欄
                 const btn = document.createElement('button');
                 btn.className = "nav-btn";
                 btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
@@ -416,30 +483,26 @@
                 };
                 container.appendChild(btn);
 
-                // B. 更新後台管理列表 (修復點)
+                // 後台表格
                 if(adminToolsTable) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${escapeHtml(data.name)}</td>
-                        <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">刪除工具</button></td>
-                    `;
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">Del</button></td>`;
                     adminToolsTable.appendChild(tr);
                 }
             });
         });
-
         window.userAddNewTool = async function() {
             const name = document.getElementById('new-tool-name').value;
             const code = document.getElementById('new-tool-code').value;
-            if(!name || !code) return alert("請填寫名稱與代碼");
-            if(confirm("確定要發布嗎？這將會顯示給所有用戶！")) {
+            if(!name || !code) return alert("請填寫");
+            if(confirm("確定要發布嗎？")) {
                 await addDoc(collection(db, "tools"), { name, code, timestamp: serverTimestamp() });
                 alert("發布成功！");
                 document.getElementById('new-tool-name').value = "";
             }
         };
 
-        // 4. 同步：廣告
+        // --- 4. 同步：廣告 & 投放 ---
         onSnapshot(collection(db, "ads"), (snapshot) => {
             document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
             const adTable = document.querySelector('#ad-table tbody');
@@ -448,19 +511,20 @@
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
+                // 前台顯示
                 const slot = document.getElementById('ad-pos-' + data.pos);
                 if(slot) {
                     slot.style.display = "block";
                     slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
                 }
+                // 後台列表
                 if(adTable) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${data.pos}</td><td>Link</td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">刪除</button></td>`;
+                    tr.innerHTML = `<td>${data.pos}</td><td><img src="${data.img}" style="height:30px;"><br>${data.link}</td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">Del</button></td>`;
                     adTable.appendChild(tr);
                 }
             });
         });
-
         window.addAd = async function() {
             const img = document.getElementById('ad-img-url').value;
             const link = document.getElementById('ad-link-input').value;
@@ -470,30 +534,27 @@
             alert("廣告已發布");
         };
 
-        // 5. 同步：日誌
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
-            const logTable = document.querySelector('#log-table tbody');
-            if(!logTable) return;
-            logTable.innerHTML = "";
+        // --- 5. 同步：申請 ---
+        onSnapshot(query(collection(db, "ad_requests"), orderBy("timestamp", "desc")), (snapshot) => {
+            const table = document.querySelector('#ad-req-table tbody');
+            if(!table) return;
+            table.innerHTML = "";
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
-                logTable.innerHTML += `<tr><td>${data.time}</td><td>${escapeHtml(data.name)}</td><td>${data.action}</td></tr>`;
+                table.innerHTML += `<tr><td>${escapeHtml(data.company)}</td><td>${escapeHtml(data.contact)}</td><td>${data.bid}</td><td>${new Date(data.timestamp.toDate()).toLocaleDateString()}</td></tr>`;
             });
         });
-
         window.submitAdRequest = async function() {
-             await addDoc(collection(db, "ad_requests"), { company: document.getElementById('ad-req-company').value, timestamp: serverTimestamp() });
+             await addDoc(collection(db, "ad_requests"), { 
+                 company: document.getElementById('ad-req-company').value,
+                 contact: document.getElementById('ad-req-contact').value,
+                 bid: document.getElementById('ad-req-bid').value,
+                 timestamp: serverTimestamp() 
+             });
              alert("申請已送出");
         };
 
-        // 通用刪除功能 (給後台用)
-        window.delDoc = async function(col, id) {
-            if(confirm("確定刪除此項目?")) {
-                await deleteDoc(doc(db, col, id));
-            }
-        }
-
-        // 首頁編輯同步
+        // --- 6. 同步：主頁 ---
         const homeRef = doc(db, "site_content", "home_intro");
         onSnapshot(homeRef, (docSnap) => {
              if (docSnap.exists()) {
@@ -506,6 +567,11 @@
              const val = document.getElementById('admin-home-editor').value;
              await setDoc(homeRef, { html: val });
              alert("首頁內容已更新");
+        }
+
+        // 通用刪除
+        window.delDoc = async function(col, id) {
+            if(confirm("確定刪除?")) { await deleteDoc(doc(db, col, id)); }
         }
 
         function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
