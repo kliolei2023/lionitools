@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>獅先生工具站 | Lion Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全局重置與變數 --- */
+        :root {
+            --sidebar-bg: #0f172a; --sidebar-text: #94a3b8; --sidebar-active-bg: #1e293b;
+            --bg-main: #f8fafc; --card-bg: #ffffff;
+            --primary-color: #3b82f6; --primary-hover: #2563eb;
+            --text-main: #334155; --border-color: #e2e8f0;
+            --success: #10b981; --danger: #ef4444; --radius: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; }
+
+        /* --- 彈窗系統 --- */
+        #login-screen, #admin-auth-screen {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            display: flex; justify-content: center; align-items: center; z-index: 99999;
+        }
+        #admin-auth-screen { display: none; } 
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 16px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center; width: 400px;
+        }
+        .close-login { position: absolute; top: 16px; right: 20px; font-size: 20px; color: #cbd5e1; cursor: pointer; }
+        .close-login:hover { color: var(--danger); }
+        .login-box h2 { margin-bottom: 8px; color: #1e299b; font-size: 24px; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
+        .login-box button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .login-box button:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger) !important; }
+        .btn-danger:hover { background: #dc2626 !important; }
+        .btn-secondary { background: #64148b !important; }
+
+        /* --- 佈局 --- */
+        #main-app { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 24px 20px; color: #fff; font-weight: 700; font-size: 18px; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; }
+        
+        .nav-category { font-size: 11px; color: #64748b; padding: 16px 12px 8px; text-transform: uppercase; font-weight: 600; }
+        .nav-btn {
+            width: 100%; padding: 10px 12px; background: transparent; color: var(--sidebar-text); 
+            border: none; text-align: left; cursor: pointer; font-size: 14px; border-radius: 6px; display: flex; align-items: center; gap: 12px;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-btn.active { background: var(--sidebar-active-bg); color: var(--primary-color); font-weight: 600; }
+
+        .content-area { flex: 1; background: var(--bg-main); position: relative; overflow: hidden; }
+        .page-padded { display: none; width: 100%; height: 100%; padding: 40px; overflow-y: auto; }
+        .page-padded.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 元件 */
+        .card { background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #475569; font-size: 13px; }
+        .text-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; }
+        .btn-primary { background: var(--primary-color); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; }
+
+        /* 表格 */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #f1f5f9; color: #64748b; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        
+        /* 後台 Tab */
+        .admin-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .admin-tabs button { background: none; border: none; padding: 12px 20px; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; }
+        .admin-tabs button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        
+        /* 廣告與 iframe */
+        .ad-slot { margin-top: 10px; display: none; text-align: center; }
+        .ad-slot img { max-width: 100%; border-radius: 8px; }
+        #dynamic-pages, .page-full, iframe.tool-frame { width: 100%; height: 100%; border: none; }
+        #dynamic-pages { position: absolute; top: 0; pointer-events: none; }
+        .page-full { display: none; pointer-events: auto; background: white; }
+        .page-full.active { display: block; }
+
+        /* --- 新學貼貼碼 專用樣式 --- */
+        .puzzle-layout { display: flex; height: 100%; gap: 15px; }
+        .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; display:flex; flex-direction:column; overflow: hidden; }
+        .puzzle-cat-tabs { display: flex; background: #cbd5e1; flex-wrap: wrap; }
+        .puzzle-cat-btn { flex: 1; border: none; padding: 8px 5px; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; min-width: 25%; }
+        .puzzle-cat-btn.active { background: #e2e8f0; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+        .puzzle-blocks-container { padding: 10px; overflow-y: auto; flex:1; }
+        .puzzle-cat-section { display: none; }
+        .puzzle-cat-section.active { display: block; animation: fadeIn 0.2s; }
+
+        .puzzle-block-source { 
+            background: white; border: 1px solid #cbd5e1; padding: 8px 10px; margin-bottom: 8px; 
+            border-radius: 4px; cursor: grab; font-size: 13px; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s;
+        }
+        .puzzle-block-source:active { cursor: grabbing; transform: scale(0.98); }
+        .puzzle-block-source:hover { border-color: var(--primary-color); }
+        .puzzle-block-source span { pointer-events: none; }
+        
+        .puzzle-workspace { 
+            flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
+            padding: 20px; overflow-y: auto; position: relative; min-height: 200px;
+        }
+        .puzzle-workspace.drag-over, .puzzle-container-inner.drag-over { 
+            border-color: var(--primary-color); background: #eff6ff; 
+        }
+
+        .puzzle-right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .puzzle-preview-area { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: white; }
+        .puzzle-code-display { 
+            flex: 1; background: #1e293b; color: #10b981; border-radius: 8px; 
+            padding: 15px; font-family: monospace; font-size: 13px; resize: none; border: none;
+        }
+        
+        .puzzle-item { 
+            background: #f8fafc; border: 1px solid #94a3b8; border-left: 5px solid var(--primary-color);
+            padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;
+            position: relative; cursor: grab; 
+        }
+        .puzzle-item:active { cursor: grabbing; opacity: 0.8; }
+        .puzzle-item small { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; pointer-events: none; }
+        .puzzle-item input { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; }
+        
+        .puzzle-delete-btn { 
+            position: absolute; top: 5px; right: 5px; background: #fee2e2; color: #ef4444; 
+            border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;
+            z-index: 10;
+        }
+        .puzzle-delete-btn:hover { background: #ef4444; color: white; }
+        
+        .puzzle-container-inner {
+            min-height: 40px; background: #fff; border: 2px dashed #e2e8f0; border-radius: 4px;
+            padding: 10px; margin-top: 5px;
+        }
+        .puzzle-container-inner:empty::before { content: "拖曳元件到此..."; color: #cbd5e1; font-size: 12px; }
+
+        .puzzle-item[data-cat="fun"] { border-left-color: #d946ef; background: #fdf4ff; }
+        .puzzle-item[data-cat="layout"] { border-left-color: #8b5cf6; background: #f5f3ff; }
+        .puzzle-item[data-cat="media"] { border-left-color: #10b981; }
+        
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="close-login" onclick="closeLogin()">✕</div>
+            <div style="font-size:30px; margin-bottom:10px;">🦁</div>
+            <h2>獅先生工具站</h2>
+            <p>歡迎使用</p>
+            <input type="text" id="username" placeholder="您的姓名 (選填)">
+            <button onclick="handleLogin()">進入系統</button>
+            <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
+        </div>
+    </div>
+
+    <div id="admin-auth-screen">
+        <div class="login-box" style="border: 2px solid #3b82f6;">
+            <div class="close-login" onclick="closeAdminAuth()">✕</div>
+            <h2 style="color:#3b82f6;">管理員驗證</h2>
+            <p>請輸入密碼</p>
+            <input type="password" id="admin-password-input" placeholder="密碼">
+            <div style="display:flex; gap:10px;">
+                <button class="btn-danger" onclick="closeAdminAuth()">取消</button>
+                <button onclick="verifyAdminPassword()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div class="sidebar">
+            <div class="sidebar-header">🛠️ HOME </div>
+            <div class="sidebar-content">
+                <div id="ad-pos-sidebar-top" class="ad-slot"></div>
+                
+                <div class="nav-category">原有系統</div>
+                <button class="nav-btn" onclick="showPage('translator')">🌐 代碼即打即有</button>
+                <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼</button>
+                <button class="nav-btn" onclick="showPage('add-tool')">➕ 上傳您製作的系統</button>
+
+                <div class="nav-category">一般</div>
+                <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
+                <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/系統許願板</button>
+                <button class="nav-btn" onclick="showPage('ad-center')">📢 廣告申請</button>
+
+                <div class="nav-category">管理者</div>
+                <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒</button>
+                
+                <div style="margin:15px 0; border-top:1px solid #334155;"></div>
+                <div class="nav-category">來自所有人的系統創作</div>
+                <div id="dynamic-nav-container"></div>
+                <div id="ad-pos-sidebar-bottom" class="ad-slot"></div>
+            </div>
+            <div class="sidebar-footer" style="padding:20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid #1e293b;">
+                <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">0</span></div>
+                <div style="margin-top:15px; pt-15px; border-top:1px solid rgba(255,255,255,0.05); opacity:0.6; font-size:10px;">
+                    {© 2025 獅先生工具站 . 保留所有权利。}<br>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="ad-pos-content-top" class="ad-slot" style="padding:20px 40px 0;"></div>
+
+            <div id="home" class="page-padded active">
+                <h1>獅先生工具站簡介</h1>
+                <div class="card"><div id="home-dynamic-content">載入中...</div></div>
+            </div>
+
+            <div id="guestbook" class="page-padded">
+                <h1>留言板 (雲端共用版)</h1>
+                <div class="card">
+                    <input type="text" id="gb-name" class="text-input" placeholder="稱呼" style="margin-bottom:10px;">
+                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法 (Email / LINE)" style="margin-bottom:10px;">
+                    <textarea id="gb-msg" class="text-input" placeholder="內容" style="margin-bottom:10px;"></textarea>
+                    <button class="btn-primary" onclick="submitComment()">送出</button>
+                    <div id="comments-list" style="margin-top:20px;"></div>
+                </div>
+            </div>
+
+            <div id="ad-center" class="page-padded">
+                <h1>廣告申請</h1>
+                <div class="card">
+                    <input type="text" id="ad-req-company" class="text-input" placeholder="公司" style="margin-bottom:10px;">
+                    <input type="text" id="ad-req-contact" class="text-input" placeholder="聯絡" style="margin-bottom:10px;">
+                    <input type="number" id="ad-req-bid" class="text-input" placeholder="預算" style="margin-bottom:10px;">
+                    <button class="btn-primary" onclick="submitAdRequest()">提交申請</button>
+                </div>
+            </div>
+
+            <div id="translator" class="page-padded">
+                <h1>中文代碼工廠</h1>
+                <div class="card" style="display:flex; gap:20px; height:600px;">
+                    <textarea id="trans-input" class="text-input" style="flex:1; background:#1e293b; color:#ccc; font-family:monospace;" oninput="updateCompilerPreview()"></textarea>
+                    <iframe id="trans-preview" style="flex:1; border:1px solid #eee;"></iframe>
+                </div>
+            </div>
+
+            <div id="code-puzzle" class="page-padded">
+                <h1>🧩 新學貼貼碼 (拖曳生成器)</h1>
+                <p style="color:#64748b; margin-bottom:15px; font-size:14px;">
+                    超級積木庫：文字、排版、媒體，還有有趣的特效！拖曳組合，觀察下方的原始碼如何變化。
+                </p>
+                <div class="card" style="height: 600px; padding: 20px;">
+                    <div class="puzzle-layout">
+                        <div class="puzzle-sidebar">
+                            <div class="puzzle-cat-tabs">
+                                <button class="puzzle-cat-btn active" onclick="switchPuzzleCat('text')">📝 文字</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('layout')">📍 排版</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('media')">🖼️ 媒體</button>
+                                <button class="puzzle-cat-btn" style="color:#d946ef;" onclick="switchPuzzleCat('fun')">✨ 有趣</button>
+                            </div>
+                            <div class="puzzle-blocks-container">
+                                <div id="pcat-text" class="puzzle-cat-section active">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 大標題 (H1)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="p">📝 文字段落 (P)</div>
+                                </div>
+                                <div id="pcat-layout" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列</div>
+                                </div>
+                                <div id="pcat-media" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="button">🔘 按鈕</div>
+                                </div>
+                                <div id="pcat-fun" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-rainbow">🌈 彩虹字</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
+                            <div id="puzzle-empty-msg" style="color:#cbd5e1; text-align:center; margin-top:50px; pointer-events:none;">拖曳積木到這裡...</div>
+                        </div>
+
+                        <div class="puzzle-right-panel">
+                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽 (Preview)</div>
+                            <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
+                            
+                            <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:5px;">💻 原始碼 (Source Code)</div>
+                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly placeholder="這裡會顯示 HTML 代碼..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="add-tool" class="page-padded">
+                <h1>製作新工具</h1>
+                <div class="card">
+                    <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #ccc; padding:20px; text-align:center; cursor:pointer;">📂 上傳檔案</div>
+                    <input type="file" id="file-uploader" hidden onchange="processFile(this)">
+                    <input type="text" id="new-tool-name" class="text-input" placeholder="工具名稱" style="margin:10px 0;">
+                    <textarea id="new-tool-code" class="text-input" style="height:150px; font-family:monospace;" placeholder="HTML代碼"></textarea>
+                    <button class="btn-primary" onclick="userAddNewTool()" style="margin-top:10px;">生成工具</button>
+                </div>
+            </div>
+
+            <div id="admin" class="page-padded">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h1>後台管理</h1>
+                    <span style="font-size:12px; background:#e2e8f0; padding:5px; border-radius:4px;">Admin Access</span>
+                </div>
+                <div class="admin-tabs">
+                    <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 總覽</button>
+                    <button onclick="switchAdminTab('tab-comments')">💬 留言 (Firebase)</button>
+                    <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
+                </div>
+                
+                <div id="tab-dashboard" class="admin-section active">
+                    <div class="card"><h3>日誌 (Local)</h3><div style="max-height:300px; overflow-y:auto;"><table id="log-table"><tbody></tbody></table></div></div>
+                </div>
+                
+                <div id="tab-comments" class="admin-section">
+                    <div class="card">
+                        <table id="admin-comments-table">
+                            <thead><tr><th>姓名</th><th>內容</th><th>操作</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="tab-home-edit" class="admin-section">
+                    <div class="card">
+                        <h3>主頁內容編輯器</h3>
+                        <textarea id="admin-home-editor" class="text-input" style="height:300px; font-family:monospace;"></textarea>
+                        <button class="btn-primary" onclick="saveHomeContent()" style="margin-top:10px;">保存變更</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dynamic-pages"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 核心與初始化 ---
+        window.onload = function() {
+            updateVisits();
+            // loadTools(); // 暫時註解，因無工具代碼
+            // renderAds(); // 暫時註解
+            loadHome();
+            document.getElementById('trans-input').value = '<div style="text-align:center; padding:50px;"><h1>✨ 歡迎</h1><button>Test</button></div>';
+            updateCompilerPreview();
+        };
+
+        // --- 登入系統 ---
+        function handleLogin() {
+            let name = document.getElementById('username').value.trim() || "訪客";
+            let meta = JSON.parse(localStorage.getItem('ts_meta')) || { total_visits: 0 };
+            meta.total_visits++;
+            localStorage.setItem('ts_meta', JSON.stringify(meta));
+            logAction(name, "登入系統");
+            updateVisits();
+            document.getElementById('login-screen').style.display = 'none';
+        }
+        function closeLogin() { document.getElementById('username').value=""; handleLogin(); }
+        function updateVisits() { 
+            let meta = JSON.parse(localStorage.getItem('ts_meta')) || { total_visits: 0 };
+            document.getElementById('total-visits-display').innerText = meta.total_visits; 
+        }
+        function logAction(name, action) {
+            let logs = JSON.parse(localStorage.getItem('ts_logs')) || [];
+            logs.push({ id: Date.now(), time: new Date().toLocaleString(), name: name, action: action });
+            localStorage.setItem('ts_logs', JSON.stringify(logs));
+            renderLogs();
+        }
+        function renderLogs() {
+            let logs = JSON.parse(localStorage.getItem('ts_logs')) || [];
+            let html = logs.map(l => `<tr><td>${l.time}</td><td>${l.name}</td><td>${l.action}</td></tr>`).join('');
+            const tbl = document.querySelector('#log-table tbody');
+            if(tbl) tbl.innerHTML = html;
+        }
+
+        // --- 頁面導航 ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(pageId);
+            if(target) target.classList.add('active');
+            if(event && event.currentTarget && event.currentTarget.classList.contains('nav-btn')) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // --- 管理員驗證 ---
+        function openAdminAuth() {
+            document.getElementById('admin-auth-screen').style.display = 'flex';
+        }
+        function closeAdminAuth() {
+            document.getElementById('admin-auth-screen').style.display = 'none';
+            document.getElementById('admin-password-input').value = '';
+        }
+        function verifyAdminPassword() {
+            const pwd = document.getElementById('admin-password-input').value;
+            if(pwd === "1234") { // 預設密碼 1234
+                closeAdminAuth();
+                showPage('admin');
+                renderLogs();
+            } else {
+                alert("密碼錯誤");
+            }
+        }
+
+        // --- 後台 Tabs ---
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- 功能: 關於站主 ---
+        function loadHome() {
+            const content = localStorage.getItem('ts_home_content') || "<h2>歡迎來到獅先生工具站</h2><p>這裡是站主簡介...</p>";
+            document.getElementById('home-dynamic-content').innerHTML = content;
+            document.getElementById('admin-home-editor').value = content;
+        }
+        function saveHomeContent() {
+            const val = document.getElementById('admin-home-editor').value;
+            localStorage.setItem('ts_home_content', val);
+            loadHome();
+            alert("已保存");
+        }
+
+        // --- 功能: 代碼工廠 ---
+        function updateCompilerPreview() {
+            const val = document.getElementById('trans-input').value;
+            const iframe = document.getElementById('trans-preview');
+            iframe.srcdoc = val;
+        }
+
+        // --- 功能: 拼圖 (Placeholder: 避免報錯，因原代碼缺失) ---
+        function switchPuzzleCat(cat) {
+            document.querySelectorAll('.puzzle-cat-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('pcat-' + cat).classList.add('active');
+            document.querySelectorAll('.puzzle-cat-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+        function dragNew(ev) { ev.dataTransfer.setData("type", ev.target.dataset.type); }
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drop(ev) { ev.preventDefault(); alert("拼圖功能邏輯需補全"); }
+
+        // --- 功能: 新增工具 ---
+        function userAddNewTool() { alert("工具生成功能"); }
+        function processFile() {}
+        function submitAdRequest() { alert("申請已送出(模擬)"); }
+
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+        import { 
+            getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
+            authDomain: "lion-tools-b4622.firebaseapp.com",
+            projectId: "lion-tools-b4622",
+            storageBucket: "lion-tools-b4622.firebasestorage.app",
+            messagingSenderId: "600859231732",
+            appId: "1:600859231732:web:9afca65e11cc69c6fce5a1",
+            measurementId: "G-F2JWVM6CSV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // 監聽留言 (任何人留言都會自動更新)
+        const q = query(collection(db, "guestbook"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('comments-list');
+            const adminTable = document.querySelector('#admin-comments-table tbody');
+            if(list) list.innerHTML = "";
+            if(adminTable) adminTable.innerHTML = "";
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                let timeStr = "剛剛";
+                if(data.timestamp && typeof data.timestamp.toDate === 'function') {
+                    timeStr = new Date(data.timestamp.toDate()).toLocaleString();
+                }
+
+                // 前台顯示
+                if(list) {
+                    const div = document.createElement('div');
+                    div.style.borderBottom = "1px solid #eee";
+                    div.style.padding = "10px 0";
+                    div.innerHTML = `
+                        <div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} 
+                        <span style="color:#94a3b8; font-size:12px; font-weight:normal;">(${timeStr})</span>
+                        </div>
+                        <div style="margin-top:5px; color:#334155;">${escapeHtml(data.msg)}</div>
+                        <div style="font-size:12px; color:#cbd5e1;">聯絡: ${escapeHtml(data.contact || '無')}</div>
+                    `;
+                    list.appendChild(div);
+                }
+
+                // 後台顯示
+                if(adminTable) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.msg)}</td><td>-</td>`;
+                    adminTable.appendChild(tr);
+                }
+            });
+        });
+
+        // 送出留言
+        async function submitComment() {
+            const name = document.getElementById('gb-name').value.trim();
+            const contact = document.getElementById('gb-contact').value.trim();
+            const msg = document.getElementById('gb-msg').value.trim();
+
+            if (!name || !msg) { alert("請填寫稱呼與內容！"); return; }
+            
+            const btn = document.querySelector('#guestbook button.btn-primary');
+            if(btn) { btn.innerText = "傳送中..."; btn.disabled = true; }
+
+            try {
+                await addDoc(collection(db, "guestbook"), {
+                    name: name, contact: contact, msg: msg, timestamp: serverTimestamp()
+                });
+                alert("留言已送出！");
+                document.getElementById('gb-msg').value = "";
+            } catch (e) {
+                console.error("Error:", e);
+                alert("留言失敗，請確認 Firebase 規則");
+            } finally {
+                if(btn) { btn.innerText = "送出"; btn.disabled = false; }
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 綁定到全域
+        window.submitComment = submitComment;
+    </script>
+</body>
+</html>
