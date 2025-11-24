@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (全功能後台版)</title>
+    <title>獅先生工具站 | Lion Tools (Base64版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- 全局重置與變數 --- */
@@ -97,7 +97,7 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>獅先生工具站</h2>
-            <p>歡迎使用 (全功能版)</p>
+            <p>歡迎使用 (Base64極速版)</p>
             <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
             <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
@@ -237,7 +237,7 @@
                 
                 <div id="tab-ad-manage" class="admin-section">
                      <div class="card">
-                        <h3>新增廣告</h3>
+                        <h3>新增廣告 (圖片轉存資料庫模式)</h3>
                         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                             <input type="file" id="ad-img-file" accept="image/*" class="text-input" style="flex:1;">
                             <input type="text" id="ad-link-input" class="text-input" placeholder="跳轉連結" style="flex:1;">
@@ -247,11 +247,12 @@
                                 <option value="sidebar-bottom">側邊欄 (下)</option>
                                 <option value="content-top">內容區 (頂)</option>
                             </select>
-                            <button class="btn-primary" onclick="uploadAndAddAd()" style="height:45px;">發布</button>
+                            <button class="btn-primary" onclick="uploadAndAddAdBase64()" style="height:45px;">發布</button>
                         </div>
+                        <p style="color:#64748b; font-size:12px;">* 圖片大小限制 500KB 以下 (因為直接存入資料庫)</p>
                         
                         <h3 style="margin-top:20px;">已發布</h3>
-                        <table id="ad-table"><thead><tr><th>位置</th><th>圖片/連結</th><th>操作</th></tr></thead><tbody></tbody></table>
+                        <table id="ad-table"><thead><tr><th>位置</th><th>預覽</th><th>操作</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
@@ -308,7 +309,6 @@
     </div>
 
     <script>
-        // --- 頁面導航 ---
         function showPage(pageId) {
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
             const target = document.getElementById(pageId);
@@ -319,11 +319,9 @@
             }
         }
 
-        // --- 管理員驗證 ---
         function openAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'flex'; }
         function closeAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'none'; document.getElementById('admin-password-input').value = ''; }
         function verifyAdminPassword() {
-            // ★★★ 密碼已變更為 "13210505" ★★★
             if(document.getElementById('admin-password-input').value === "13210505") {
                 closeAdminAuth(); showPage('admin');
             } else { alert("密碼錯誤"); }
@@ -335,7 +333,6 @@
             event.currentTarget.classList.add('active');
         }
 
-        // --- 功能函式 ---
         function updateCompilerPreview() { document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value; }
         function processFile(input) {
             const file = input.files[0];
@@ -344,7 +341,6 @@
             reader.onload = function(e) { document.getElementById('new-tool-code').value = e.target.result; };
             reader.readAsText(file);
         }
-        // 主頁編輯器功能
         function insertExternalImg() {
             const url = prompt("請輸入圖片網址 (URL):");
             if(url) {
@@ -374,36 +370,85 @@
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
             doc, deleteDoc, updateDoc, increment, setDoc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // ★★★ 導入 Storage 模組 ★★★
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
             authDomain: "lion-tools-b4622.firebaseapp.com",
             projectId: "lion-tools-b4622",
-            storageBucket: "lion-tools-b4622.firebasestorage.app", // Storage 桶位
+            storageBucket: "lion-tools-b4622.firebasestorage.app",
             messagingSenderId: "600859231732",
             appId: "1:600859231732:web:9afca65e11cc69c6fce5a1",
             measurementId: "G-F2JWVM6CSV"
         };
 
-        let app, db, storage;
+        let app, db;
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            // ★★★ 初始化 Storage ★★★
-            storage = getStorage(app); 
-            console.log("Firebase 連線成功 (含 Storage)");
+            console.log("Firebase 連線成功 (NO Storage)");
         } catch(e) { console.error(e); }
 
-        // --- 1. 同步：總訪問人數 & 日誌 ---
+        // --- 1. 廣告上傳 (Base64 方案) ---
+        window.uploadAndAddAdBase64 = function() {
+            const fileInput = document.getElementById('ad-img-file');
+            const file = fileInput.files[0];
+            const link = document.getElementById('ad-link-input').value;
+            const pos = document.getElementById('ad-pos-input').value;
+            
+            if(!file || !link) return alert("請選擇圖片並填寫連結");
+            if(file.size > 500 * 1024) return alert("圖片太大！請小於 500KB");
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64String = e.target.result;
+                try {
+                    await addDoc(collection(db, "ads"), { 
+                        img: base64String, 
+                        link: link, 
+                        pos: pos, 
+                        timestamp: serverTimestamp() 
+                    });
+                    alert("廣告發布成功！");
+                    fileInput.value = '';
+                    document.getElementById('ad-link-input').value = '';
+                } catch(err) {
+                    console.error(err);
+                    alert("發布失敗：" + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // --- 2. 同步廣告 ---
+        onSnapshot(collection(db, "ads"), (snapshot) => {
+            document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
+            const adTable = document.querySelector('#ad-table tbody');
+            if(adTable) adTable.innerHTML = "";
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                // 前台
+                const slot = document.getElementById('ad-pos-' + data.pos);
+                if(slot) {
+                    slot.style.display = "block";
+                    slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
+                }
+                // 後台
+                if(adTable) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${data.pos}</td><td><img src="${data.img}" style="height:40px; object-fit:cover;"></td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">Del</button></td>`;
+                    adTable.appendChild(tr);
+                }
+            });
+        });
+
+        // --- 其他同步功能 (維持原樣) ---
         const statsRef = doc(db, "stats", "main");
         onSnapshot(statsRef, (docSnap) => {
             if (docSnap.exists()) { document.getElementById('total-visits-display').innerText = docSnap.data().total_visits || 0; }
         });
 
-        // 登入邏輯
         window.handleLogin = async function() {
             let name = document.getElementById('username').value.trim() || "訪客";
             document.getElementById('login-screen').style.display = 'none';
@@ -414,7 +459,6 @@
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        // 總覽日誌 (Dashboard)
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
             const logTable = document.querySelector('#log-table tbody');
             if(!logTable) return;
@@ -425,24 +469,18 @@
             });
         });
 
-        // --- 2. 同步：留言板 ---
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
-            
             if(list) list.innerHTML = "";
             if(adminTbody) adminTbody.innerHTML = "";
-
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
                 let time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "";
-                
-                // 前台
                 if(list) {
                     list.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} <span style="font-size:12px; color:#999;">(${time})</span></div><div style="margin-top:5px;">${escapeHtml(data.msg)}</div></div>`;
                 }
-                // 後台
                 if(adminTbody) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.contact)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">Del</button></td>`;
@@ -459,20 +497,15 @@
             alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
-        // --- 3. 同步：工具 & 工具後台 ---
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
             const adminToolsTable = document.querySelector('#tool-manage-table tbody');
-            
             if(container) container.innerHTML = "";
             if(adminToolsTable) adminToolsTable.innerHTML = "";
-            
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
-                
-                // 側邊欄
                 const btn = document.createElement('button');
                 btn.className = "nav-btn";
                 btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
@@ -489,8 +522,6 @@
                     showPage('page-' + id);
                 };
                 container.appendChild(btn);
-
-                // 後台表格
                 if(adminToolsTable) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">Del</button></td>`;
@@ -509,71 +540,6 @@
             }
         };
 
-        // --- 4. 同步：廣告 & 投放 (主要修改區域) ---
-        onSnapshot(collection(db, "ads"), (snapshot) => {
-            document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
-            const adTable = document.querySelector('#ad-table tbody');
-            if(adTable) adTable.innerHTML = "";
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                // 前台顯示
-                const slot = document.getElementById('ad-pos-' + data.pos);
-                if(slot) {
-                    slot.style.display = "block";
-                    slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
-                }
-                // 後台列表
-                if(adTable) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${data.pos}</td><td><img src="${data.img}" style="height:30px;"><br>${data.link}</td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">Del</button></td>`;
-                    adTable.appendChild(tr);
-                }
-            });
-        });
-        
-        // ★★★ 新的廣告上傳和發布函式 ★★★
-        window.uploadAndAddAd = async function() {
-            const fileInput = document.getElementById('ad-img-file');
-            const file = fileInput.files[0];
-            const link = document.getElementById('ad-link-input').value;
-            const pos = document.getElementById('ad-pos-input').value;
-            
-            if(!file || !link) return alert("請選擇圖片並填寫跳轉連結");
-            
-            // 步驟 1: 上傳圖片到 Firebase Storage
-            const fileName = `ads/${Date.now()}-${file.name}`;
-            const storageRef = ref(storage, fileName);
-
-            try {
-                alert("圖片上傳中，請稍候...");
-                await uploadBytes(storageRef, file);
-                
-                // 步驟 2: 獲取圖片的 URL
-                const imgUrl = await getDownloadURL(storageRef);
-                
-                // 步驟 3: 將資料 (包含 URL) 存入 Firestore
-                await addDoc(collection(db, "ads"), { 
-                    img: imgUrl, 
-                    link: link, 
-                    pos: pos, 
-                    timestamp: serverTimestamp() 
-                });
-                
-                alert("廣告已成功發布！");
-                // 清空欄位
-                fileInput.value = '';
-                document.getElementById('ad-link-input').value = '';
-
-            } catch(error) {
-                console.error("廣告上傳失敗:", error);
-                alert("廣告發布失敗。請檢查您的 Storage 規則是否允許公開讀寫。");
-            }
-        };
-
-
-        // --- 5. 同步：申請 ---
         onSnapshot(query(collection(db, "ad_requests"), orderBy("timestamp", "desc")), (snapshot) => {
             const table = document.querySelector('#ad-req-table tbody');
             if(!table) return;
@@ -593,7 +559,6 @@
              alert("申請已送出");
         };
 
-        // --- 6. 同步：主頁 ---
         const homeRef = doc(db, "site_content", "home_intro");
         onSnapshot(homeRef, (docSnap) => {
              if (docSnap.exists()) {
@@ -608,7 +573,6 @@
              alert("首頁內容已更新");
         }
 
-        // 通用刪除
         window.delDoc = async function(col, id) {
             if(confirm("確定刪除?")) { await deleteDoc(doc(db, col, id)); }
         }
