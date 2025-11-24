@@ -238,8 +238,8 @@
                 <div id="tab-ad-manage" class="admin-section">
                      <div class="card">
                         <h3>新增廣告</h3>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <input type="text" id="ad-img-url" class="text-input" placeholder="圖片連結 (URL)" style="flex:1;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <input type="file" id="ad-img-file" accept="image/*" class="text-input" style="flex:1;">
                             <input type="text" id="ad-link-input" class="text-input" placeholder="跳轉連結" style="flex:1;">
                             <select id="ad-pos-input" class="text-input" style="width:200px;">
                                 <option value="login-screen">登入畫面 (下方)</option>
@@ -247,7 +247,7 @@
                                 <option value="sidebar-bottom">側邊欄 (下)</option>
                                 <option value="content-top">內容區 (頂)</option>
                             </select>
-                            <button class="btn-primary" onclick="addAd()" style="height:45px;">發布</button>
+                            <button class="btn-primary" onclick="uploadAndAddAd()" style="height:45px;">發布</button>
                         </div>
                         
                         <h3 style="margin-top:20px;">已發布</h3>
@@ -374,22 +374,27 @@
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
             doc, deleteDoc, updateDoc, increment, setDoc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // ★★★ 導入 Storage 模組 ★★★
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
             authDomain: "lion-tools-b4622.firebaseapp.com",
             projectId: "lion-tools-b4622",
-            storageBucket: "lion-tools-b4622.firebasestorage.app",
+            storageBucket: "lion-tools-b4622.firebasestorage.app", // Storage 桶位
             messagingSenderId: "600859231732",
             appId: "1:600859231732:web:9afca65e11cc69c6fce5a1",
             measurementId: "G-F2JWVM6CSV"
         };
 
-        let app, db;
+        let app, db, storage;
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase 連線成功");
+            // ★★★ 初始化 Storage ★★★
+            storage = getStorage(app); 
+            console.log("Firebase 連線成功 (含 Storage)");
         } catch(e) { console.error(e); }
 
         // --- 1. 同步：總訪問人數 & 日誌 ---
@@ -504,7 +509,7 @@
             }
         };
 
-        // --- 4. 同步：廣告 & 投放 ---
+        // --- 4. 同步：廣告 & 投放 (主要修改區域) ---
         onSnapshot(collection(db, "ads"), (snapshot) => {
             document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
             const adTable = document.querySelector('#ad-table tbody');
@@ -527,14 +532,46 @@
                 }
             });
         });
-        window.addAd = async function() {
-            const img = document.getElementById('ad-img-url').value;
+        
+        // ★★★ 新的廣告上傳和發布函式 ★★★
+        window.uploadAndAddAd = async function() {
+            const fileInput = document.getElementById('ad-img-file');
+            const file = fileInput.files[0];
             const link = document.getElementById('ad-link-input').value;
             const pos = document.getElementById('ad-pos-input').value;
-            if(!img) return alert("請輸入圖片網址");
-            await addDoc(collection(db, "ads"), { img, link, pos, timestamp: serverTimestamp() });
-            alert("廣告已發布");
+            
+            if(!file || !link) return alert("請選擇圖片並填寫跳轉連結");
+            
+            // 步驟 1: 上傳圖片到 Firebase Storage
+            const fileName = `ads/${Date.now()}-${file.name}`;
+            const storageRef = ref(storage, fileName);
+
+            try {
+                alert("圖片上傳中，請稍候...");
+                await uploadBytes(storageRef, file);
+                
+                // 步驟 2: 獲取圖片的 URL
+                const imgUrl = await getDownloadURL(storageRef);
+                
+                // 步驟 3: 將資料 (包含 URL) 存入 Firestore
+                await addDoc(collection(db, "ads"), { 
+                    img: imgUrl, 
+                    link: link, 
+                    pos: pos, 
+                    timestamp: serverTimestamp() 
+                });
+                
+                alert("廣告已成功發布！");
+                // 清空欄位
+                fileInput.value = '';
+                document.getElementById('ad-link-input').value = '';
+
+            } catch(error) {
+                console.error("廣告上傳失敗:", error);
+                alert("廣告發布失敗。請檢查您的 Storage 規則是否允許公開讀寫。");
+            }
         };
+
 
         // --- 5. 同步：申請 ---
         onSnapshot(query(collection(db, "ad_requests"), orderBy("timestamp", "desc")), (snapshot) => {
