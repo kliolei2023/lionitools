@@ -200,7 +200,7 @@
                 <div id="ad-pos-sidebar-bottom" class="ad-slot"></div>
             </div>
             <div class="sidebar-footer" style="padding:20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid #1e293b;">
-                <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">Loading...</span></div>
+                <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">0</span></div>
                 <div style="margin-top:15px; pt-15px; border-top:1px solid rgba(255,255,255,0.05); opacity:0.6; font-size:10px;">
                     {© 2025 獅先生工具站 . 保留所有权利。}<br>
                 </div>
@@ -359,7 +359,6 @@
         function updateCompilerPreview() {
             document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value;
         }
-        // 拼圖功能佔位符 (因長度限制，這裡僅保留框架，重點在 Firebase 同步)
         function switchPuzzleCat(cat) { 
             document.querySelectorAll('.puzzle-cat-section').forEach(s=>s.classList.remove('active'));
             document.getElementById('pcat-'+cat).classList.add('active');
@@ -377,12 +376,13 @@
     </script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+        // 改用穩定版本 10.7.1
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
             doc, deleteDoc, updateDoc, increment, setDoc, getDoc
-        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
@@ -394,29 +394,41 @@
             measurementId: "G-F2JWVM6CSV"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase 連線嘗試中...");
+        } catch(e) {
+            alert("Firebase 初始化失敗: " + e.message);
+        }
 
         // --- 1. 同步：總訪問人數 (Visits) ---
         const statsRef = doc(db, "stats", "main");
-        // 初始化監聽
         onSnapshot(statsRef, (docSnap) => {
+            const el = document.getElementById('total-visits-display');
             if (docSnap.exists()) {
-                document.getElementById('total-visits-display').innerText = docSnap.data().total_visits || 0;
+                el.innerText = docSnap.data().total_visits || 0;
+            } else {
+                el.innerText = "0"; // 第一次可能沒有文檔
             }
+        }, (error) => {
+            console.error("訪問人數讀取失敗:", error);
+            // 不要 alert 避免打擾使用者
+            document.getElementById('total-visits-display').innerText = "Err"; 
         });
+
         // 登入時增加人數 (取代舊的 handleLogin)
         window.handleLogin = async function() {
             let name = document.getElementById('username').value.trim() || "訪客";
             document.getElementById('login-screen').style.display = 'none';
             
-            // 寫入日誌
-            addDoc(collection(db, "logs"), {
-                action: "登入系統", name: name, time: new Date().toLocaleString(), timestamp: serverTimestamp()
-            });
-
-            // 增加總人數 (原子操作)
             try {
+                // 寫入日誌
+                addDoc(collection(db, "logs"), {
+                    action: "登入系統", name: name, time: new Date().toLocaleString(), timestamp: serverTimestamp()
+                });
+                // 增加總人數
                 await updateDoc(statsRef, { total_visits: increment(1) });
             } catch(e) {
                 // 如果文檔不存在，則創建
@@ -429,6 +441,12 @@
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
+            
+            if(snapshot.empty) {
+                if(list) list.innerHTML = "<div style='color:#ccc; text-align:center;'>目前尚無留言</div>";
+                return;
+            }
+
             if(list) list.innerHTML = "";
             if(adminTbody) adminTbody.innerHTML = "";
 
@@ -452,21 +470,25 @@
                     adminTbody.appendChild(tr);
                 }
             });
+        }, (error) => {
+            console.error("留言板錯誤:", error);
+            document.getElementById('comments-list').innerHTML = `<div style="color:red">無法讀取留言，請確認 Firebase Rules 已設為 true。(${error.code})</div>`;
         });
 
         window.submitComment = async function() {
             const name = document.getElementById('gb-name').value;
             const msg = document.getElementById('gb-msg').value;
             if(!name || !msg) return alert("請填寫");
-            await addDoc(collection(db, "guestbook"), { name, msg, contact: document.getElementById('gb-contact').value, timestamp: serverTimestamp() });
-            alert("留言已送出"); document.getElementById('gb-msg').value = "";
+            try {
+                await addDoc(collection(db, "guestbook"), { name, msg, contact: document.getElementById('gb-contact').value, timestamp: serverTimestamp() });
+                alert("留言已送出"); document.getElementById('gb-msg').value = "";
+            } catch(e) { alert("發送失敗: " + e.message); }
         };
 
         // --- 3. 同步：用戶添加的工具 (Tools) ---
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
-            const toolTable = document.getElementById('tool-manage-table');
             
             if(container) container.innerHTML = "";
             
@@ -480,13 +502,11 @@
                 btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
                 btn.onclick = () => {
                     showPage('page-' + id);
-                    // 動態生成頁面內容
                     let pageDiv = document.getElementById('page-' + id);
                     if(!pageDiv) {
                         pageDiv = document.createElement('div');
                         pageDiv.id = 'page-' + id;
                         pageDiv.className = 'page-full';
-                        // 使用 iframe 隔離代碼以防樣式衝突
                         pageDiv.innerHTML = `<iframe class="tool-frame" style="width:100%;height:100%;border:none;" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999;">關閉</button>`;
                         pagesContainer.appendChild(pageDiv);
                     }
@@ -500,7 +520,6 @@
             const name = document.getElementById('new-tool-name').value;
             const code = document.getElementById('new-tool-code').value;
             if(!name || !code) return alert("請填寫名稱與代碼");
-            
             if(confirm("確定要發布嗎？這將會顯示給所有用戶！")) {
                 await addDoc(collection(db, "tools"), { name, code, timestamp: serverTimestamp() });
                 alert("發布成功！");
@@ -510,7 +529,6 @@
 
         // --- 4. 同步：廣告 (Ads) ---
         onSnapshot(collection(db, "ads"), (snapshot) => {
-            // 清空所有廣告位
             document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
             const adTable = document.querySelector('#ad-table tbody');
             if(adTable) adTable.innerHTML = "";
@@ -519,12 +537,10 @@
                 const data = docSnap.data();
                 const id = docSnap.id;
                 const slot = document.getElementById('ad-pos-' + data.pos);
-                
                 if(slot) {
                     slot.style.display = "block";
                     slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
                 }
-                
                 if(adTable) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${data.pos}</td><td><a href="${data.link}" target="_blank">Link</a></td><td><button style="color:red" onclick="delDoc('ads','${id}')">刪</button></td>`;
@@ -561,14 +577,27 @@
              alert("申請已送出");
         };
 
-        // 通用刪除功能 (給後台用)
         window.delDoc = async function(col, id) {
             if(confirm("確定刪除?")) {
                 await deleteDoc(doc(db, col, id));
             }
         }
 
-        // 輔助函式
+        // 關於首頁簡介 (Home Content) 同步
+        const homeRef = doc(db, "site_content", "home_intro");
+        onSnapshot(homeRef, (docSnap) => {
+             if (docSnap.exists()) {
+                 const content = docSnap.data().html;
+                 document.getElementById('home-dynamic-content').innerHTML = content;
+                 document.getElementById('admin-home-editor').value = content;
+             }
+        });
+        window.saveHomeContent = async function() {
+             const val = document.getElementById('admin-home-editor').value;
+             await setDoc(homeRef, { html: val });
+             alert("首頁內容已更新");
+        }
+
         function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
         function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
 
