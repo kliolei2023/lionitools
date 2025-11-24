@@ -323,6 +323,7 @@
         function openAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'flex'; }
         function closeAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'none'; document.getElementById('admin-password-input').value = ''; }
         function verifyAdminPassword() {
+            // ★★★ 密碼已變更為 "13210505" ★★★
             if(document.getElementById('admin-password-input').value === "13210505") {
                 closeAdminAuth(); showPage('admin');
             } else { alert("密碼錯誤"); }
@@ -447,8 +448,9 @@
         window.submitComment = async function() {
             const name = document.getElementById('gb-name').value;
             const msg = document.getElementById('gb-msg').value;
+            const contact = document.getElementById('gb-contact').value;
             if(!name || !msg) return alert("請填寫");
-            await addDoc(collection(db, "guestbook"), { name, msg, contact: document.getElementById('gb-contact').value, timestamp: serverTimestamp() });
+            await addDoc(collection(db, "guestbook"), { name, msg, contact, timestamp: serverTimestamp() });
             alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
