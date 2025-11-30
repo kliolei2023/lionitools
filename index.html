@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (Base64版)</title>
+    <title>獅先生工具站 | Lion Tools (完整雲端版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- 全局重置與變數 --- */
@@ -84,10 +84,71 @@
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
 
-        /* 拼圖區 (簡化) */
+        /* --- 新學貼貼碼 專用樣式 (從第二個文件完整複製) --- */
         .puzzle-layout { display: flex; height: 100%; gap: 15px; }
-        .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; }
-        .puzzle-workspace { flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; padding:20px; }
+        
+        /* 左側 Sidebar */
+        .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; display:flex; flex-direction:column; overflow: hidden; }
+        .puzzle-cat-tabs { display: flex; background: #cbd5e1; flex-wrap: wrap; }
+        .puzzle-cat-btn { flex: 1; border: none; padding: 8px 5px; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; min-width: 25%; }
+        .puzzle-cat-btn.active { background: #e2e8f0; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+        .puzzle-blocks-container { padding: 10px; overflow-y: auto; flex:1; }
+        .puzzle-cat-section { display: none; }
+        .puzzle-cat-section.active { display: block; animation: fadeIn 0.2s; }
+
+        .puzzle-block-source { 
+            background: white; border: 1px solid #cbd5e1; padding: 8px 10px; margin-bottom: 8px; 
+            border-radius: 4px; cursor: grab; font-size: 13px; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s;
+        }
+        .puzzle-block-source:active { cursor: grabbing; transform: scale(0.98); }
+        .puzzle-block-source:hover { border-color: var(--primary-color); }
+        .puzzle-block-source span { pointer-events: none; }
+        
+        /* 中間 Workspace */
+        .puzzle-workspace { 
+            flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
+            padding: 20px; overflow-y: auto; position: relative; min-height: 200px;
+        }
+        .puzzle-workspace.drag-over, .puzzle-container-inner.drag-over { 
+            border-color: var(--primary-color); background: #eff6ff; 
+        }
+
+        /* 右側 預覽+代碼 */
+        .puzzle-right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .puzzle-preview-area { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: white; }
+        .puzzle-code-display { 
+            flex: 1; background: #1e293b; color: #10b981; border-radius: 8px; 
+            padding: 15px; font-family: monospace; font-size: 13px; resize: none; border: none;
+        }
+        
+        /* --- 積木樣式 (Nested) --- */
+        .puzzle-item { 
+            background: #f8fafc; border: 1px solid #94a3b8; border-left: 5px solid var(--primary-color);
+            padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;
+            position: relative; cursor: grab; 
+        }
+        .puzzle-item:active { cursor: grabbing; opacity: 0.8; }
+        .puzzle-item small { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; pointer-events: none; }
+        .puzzle-item input { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; }
+        
+        .puzzle-delete-btn { 
+            position: absolute; top: 5px; right: 5px; background: #fee2e2; color: #ef4444; 
+            border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;
+            z-index: 10;
+        }
+        .puzzle-delete-btn:hover { background: #ef4444; color: white; }
+        
+        .puzzle-container-inner {
+            min-height: 40px; background: #fff; border: 2px dashed #e2e8f0; border-radius: 4px;
+            padding: 10px; margin-top: 5px;
+        }
+        .puzzle-container-inner:empty::before { content: "拖曳元件到此..."; color: #cbd5e1; font-size: 12px; }
+
+        /* 積木顏色指示 (分類識別) */
+        .puzzle-item[data-cat="fun"] { border-left-color: #d946ef; background: #fdf4ff; }
+        .puzzle-item[data-cat="layout"] { border-left-color: #8b5cf6; background: #f5f3ff; }
+        .puzzle-item[data-cat="media"] { border-left-color: #10b981; }
     </style>
 </head>
 <body>
@@ -97,7 +158,7 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>獅先生工具站</h2>
-            <p>歡迎使用 (Base64極速版)</p>
+            <p>歡迎使用 (完整雲端版)</p>
             <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
             <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
@@ -187,13 +248,92 @@
                 </div>
             </div>
 
+            <!-- 完整的新學貼貼碼頁面 (從第二個文件複製) -->
             <div id="code-puzzle" class="page-padded">
-                <h1>🧩 新學貼貼碼</h1>
+                <h1>🧩 新學貼貼碼 (拖曳生成器)</h1>
+                <p style="color:#64748b; margin-bottom:15px; font-size:14px;">
+                    超級積木庫：文字、排版、媒體，還有有趣的特效！拖曳組合，觀察下方的原始碼如何變化。
+                </p>
                 <div class="card" style="height: 600px; padding: 20px;">
-                   <div class="puzzle-layout">
-                        <div class="puzzle-sidebar" style="padding:10px; color:#555; font-size:12px;">(功能保留區塊)</div>
-                        <div class="puzzle-workspace"></div>
-                   </div>
+                    <div class="puzzle-layout">
+                        <div class="puzzle-sidebar">
+                            <div class="puzzle-cat-tabs">
+                                <button class="puzzle-cat-btn active" onclick="switchPuzzleCat('text')">📝 文字</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('layout')">📍 排版</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('media')">🖼️ 媒體</button>
+                                <button class="puzzle-cat-btn" style="color:#d946ef;" onclick="switchPuzzleCat('fun')">✨ 有趣</button>
+                            </div>
+                            <div class="puzzle-blocks-container">
+                                
+                                <div id="pcat-text" class="puzzle-cat-section active">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 大標題 (H1)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h2">📄 中標題 (H2)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h3">📄 小標題 (H3)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="p">📝 文字段落 (P)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="bold">𝐁 粗體字 (Bold)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="italic">𝘐 斜體字 (Italic)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="quote">❝ 引用區塊 (Quote)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="ul">🔢 列表容器 (UL)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="li">🔸 列表項目 (LI)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="red-text" style="color:#ef4444;">🔴 紅色字體</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-text" style="color:#3b82f6;">🔵 藍色字體</div>
+                                </div>
+                                
+                                <div id="pcat-layout" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" style="border:1px solid #8b5cf6;" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列 (Flex Row)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-center">🎯 置中容器 (Center)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-right">➡️ 靠右容器 (Right)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-col-2">⏸️ 雙欄排版 (50/50)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-border">🔲 卡片框線 (Card)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-shadow">☁️ 陰影卡片 (Shadow)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-round">🟣 圓角區塊 (Round)</div>
+                                    <div class="puzzle-block-source" style="background:#fee2e2;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-red">🟥 紅色背景</div>
+                                    <div class="puzzle-block-source" style="background:#dbeafe;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-blue">🟦 藍色背景</div>
+                                    <div class="puzzle-block-source" style="background:#dcfce7;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-green">🟩 綠色背景</div>
+                                    <div class="puzzle-block-source" style="background:#fef9c3;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-yellow">🟨 黃色警告</div>
+                                </div>
+                                
+                                <div id="pcat-media" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="button">🔘 按鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-btn">🔵 藍色按鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="img">🖼️ 圖片</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="img-circle">👤 圓形頭像</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="link">🔗 超連結</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="input">📥 輸入框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="checkbox">☑️ 核取方塊</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="select">🔽 下拉選單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="hr">➖ 分隔線</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="progress">📊 進度條</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="video">🎬 影片框 (預設)</div>
+                                </div>
+
+                                <div id="pcat-fun" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" style="background:linear-gradient(90deg, red, blue); color:white;" draggable="true" ondragstart="dragNew(event)" data-type="fun-rainbow">🌈 彩虹字 (Rainbow)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-neon">💡 霓虹按鈕 (Neon)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-glass">🧊 毛玻璃 (Glass)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-spin">🔄 旋轉元件 (Spin)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-shake">🫨 抖動元件 (Shake)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-3d-btn">🆙 3D 按鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-spoiler">🙈 防雷刮刮樂 (Spoiler)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-typewriter">⌨️ 打字機字體</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-gradient-box">🎨 漸層背景盒</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="marquee">🏃 跑馬燈</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
+                            <div id="puzzle-empty-msg" style="color:#cbd5e1; text-align:center; margin-top:50px; pointer-events:none;">拖曳積木到這裡...</div>
+                        </div>
+
+                        <div class="puzzle-right-panel">
+                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽 (Preview)</div>
+                            <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
+                            
+                            <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:5px;">💻 原始碼 (Source Code)</div>
+                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly placeholder="這裡會顯示 HTML 代碼..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -309,6 +449,7 @@
     </div>
 
     <script>
+        // --- 基本功能 (從第一個文件保留) ---
         function showPage(pageId) {
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
             const target = document.getElementById(pageId);
@@ -362,9 +503,249 @@
         function clearHomeEditor() {
             if(confirm("確定要清空嗎？")) document.getElementById('admin-home-editor').value = "";
         }
+
+        // --- 新學貼貼碼功能 (從第二個文件完整複製) ---
+        function switchPuzzleCat(cat) {
+            document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('pcat-'+cat).classList.add('active');
+            if(event) event.target.classList.add('active');
+        }
+
+        function dragNew(ev) {
+            ev.dataTransfer.setData("source", "sidebar");
+            ev.dataTransfer.setData("type", ev.target.getAttribute('data-type'));
+            ev.stopPropagation();
+        }
+
+        function dragExisting(ev) {
+            ev.dataTransfer.setData("source", "workspace");
+            if(!ev.target.id) ev.target.id = "moving-" + Date.now();
+            ev.dataTransfer.setData("elemId", ev.target.id);
+            ev.stopPropagation();
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            let target = ev.target;
+            if(target.tagName === 'INPUT' || target.tagName === 'SMALL' || target.tagName === 'BUTTON') return;
+            if(target.classList.contains('puzzle-workspace') || target.classList.contains('puzzle-container-inner')) {
+                 target.classList.add('drag-over');
+            }
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            document.getElementById('puzzle-empty-msg').style.display = 'none';
+
+            let source = ev.dataTransfer.getData("source");
+            let targetZone = ev.target;
+            if(!targetZone.classList.contains('puzzle-workspace') && !targetZone.classList.contains('puzzle-container-inner')) {
+                targetZone = targetZone.closest('.puzzle-container-inner') || document.getElementById('puzzle-root');
+            }
+
+            if(source === 'sidebar') {
+                let type = ev.dataTransfer.getData("type");
+                let newItem = createPuzzleItem(type);
+                targetZone.appendChild(newItem);
+            } else if (source === 'workspace') {
+                let elemId = ev.dataTransfer.getData("elemId");
+                let movingElem = document.getElementById(elemId);
+                if(movingElem) {
+                    targetZone.appendChild(movingElem);
+                    if(movingElem.id.startsWith("moving-")) movingElem.removeAttribute("id");
+                }
+            }
+            renderPuzzle();
+        }
+
+        function createPuzzleItem(type) {
+            let item = document.createElement('div');
+            item.className = 'puzzle-item';
+            item.draggable = true;
+            item.ondragstart = dragExisting;
+
+            let delBtn = document.createElement('button');
+            delBtn.className = 'puzzle-delete-btn';
+            delBtn.innerHTML = '✕';
+            delBtn.onclick = function(e) { 
+                e.stopPropagation(); item.remove(); 
+                if(document.getElementById('puzzle-root').children.length <= 1) document.getElementById('puzzle-empty-msg').style.display = 'block';
+                renderPuzzle(); 
+            };
+            
+            let label = document.createElement('small');
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.oninput = renderPuzzle; 
+            
+            let isContainer = false;
+
+            // --- 40+ 積木定義 ---
+            // 1. Text
+            if(type === 'h1') { label.innerText='H1 大標題'; input.placeholder='大標題...'; }
+            else if(type === 'h2') { label.innerText='H2 中標題'; input.placeholder='中標題...'; }
+            else if(type === 'h3') { label.innerText='H3 小標題'; input.placeholder='小標題...'; }
+            else if(type === 'p') { label.innerText='段落 P'; input.placeholder='內文...'; }
+            else if(type === 'bold') { label.innerText='粗體 B'; input.placeholder='粗體文字...'; }
+            else if(type === 'italic') { label.innerText='斜體 I'; input.placeholder='斜體文字...'; }
+            else if(type === 'quote') { label.innerText='引用 Blockquote'; input.placeholder='引用內容...'; }
+            else if(type === 'red-text') { label.innerText='🔴 紅字'; input.placeholder='紅字...'; }
+            else if(type === 'blue-text') { label.innerText='🔵 藍字'; input.placeholder='藍字...'; }
+            // 2. Lists (Containers)
+            else if(type === 'ul') { label.innerText='🔢 列表容器 UL'; input.style.display='none'; isContainer=true; item.setAttribute('data-cat','layout'); }
+            else if(type === 'li') { label.innerText='🔸 列表項目 LI'; input.placeholder='項目內容...'; }
+            // 3. Layout (Containers)
+            else if(type.startsWith('div-')) {
+                isContainer = true; item.setAttribute('data-cat','layout');
+                if(type === 'div-flex') { label.innerText='↔️ 橫向排列 (Flex)'; input.style.display='none'; }
+                else if(type === 'div-center') { label.innerText='🎯 置中容器'; input.style.display='none'; }
+                else if(type === 'div-right') { label.innerText='➡️ 靠右容器'; input.style.display='none'; }
+                else if(type === 'div-col-2') { label.innerText='⏸️ 雙欄 (Flex 50%)'; input.style.display='none'; }
+                else if(type === 'div-border') { label.innerText='🔲 卡片框線'; input.style.display='none'; }
+                else if(type === 'div-shadow') { label.innerText='☁️ 陰影卡片'; input.style.display='none'; }
+                else if(type === 'div-round') { label.innerText='🟣 圓角區塊'; input.style.display='none'; }
+                else if(type === 'div-bg-red') { label.innerText='🟥 紅色背景'; input.style.display='none'; item.style.backgroundColor='#fee2e2'; }
+                else if(type === 'div-bg-blue') { label.innerText='🟦 藍色背景'; input.style.display='none'; item.style.backgroundColor='#dbeafe'; }
+                else if(type === 'div-bg-green') { label.innerText='🟩 綠色背景'; input.style.display='none'; item.style.backgroundColor='#dcfce7'; }
+                else if(type === 'div-bg-yellow') { label.innerText='🟨 黃色警告'; input.style.display='none'; item.style.backgroundColor='#fef9c3'; }
+            }
+            // 4. Media
+            else if(type === 'button') { label.innerText='按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'blue-btn') { label.innerText='藍色按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'img') { label.innerText='圖片 URL'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'img-circle') { label.innerText='圓形頭像 URL'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'link') { label.innerText='超連結'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'input') { label.innerText='輸入框'; input.placeholder='預設文字...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'checkbox') { label.innerText='核取方塊 Checkbox'; input.placeholder='選項文字...'; item.setAttribute('data-cat','media'); }
+            else if(type === 'select') { label.innerText='下拉選單'; input.style.display='none'; item.setAttribute('data-cat','media'); }
+            else if(type === 'hr') { label.innerText='分隔線'; input.style.display='none'; item.setAttribute('data-cat','media'); }
+            else if(type === 'progress') { label.innerText='進度條 %'; input.placeholder='50'; item.setAttribute('data-cat','media'); }
+            else if(type === 'video') { label.innerText='影片框'; input.style.display='none'; item.setAttribute('data-cat','media'); }
+            else if(type === 'marquee') { label.innerText='跑馬燈'; input.placeholder='跑動的文字...'; item.setAttribute('data-cat','media'); }
+            // 5. Fun
+            else if(type.startsWith('fun-')) {
+                item.setAttribute('data-cat','fun');
+                if(type === 'fun-rainbow') { label.innerText='🌈 彩虹字'; input.placeholder='彩虹文字...'; }
+                else if(type === 'fun-neon') { label.innerText='💡 霓虹按鈕'; input.placeholder='發光按鈕...'; }
+                else if(type === 'fun-glass') { label.innerText='🧊 毛玻璃容器'; input.style.display='none'; isContainer=true; }
+                else if(type === 'fun-spin') { label.innerText='🔄 旋轉元件'; input.placeholder='旋轉文字...'; }
+                else if(type === 'fun-shake') { label.innerText='🫨 抖動元件'; input.placeholder='抖動文字...'; }
+                else if(type === 'fun-3d-btn') { label.innerText='🆙 3D 按鈕'; input.placeholder='按我...'; }
+                else if(type === 'fun-spoiler') { label.innerText='🙈 防雷刮刮樂'; input.placeholder='隱藏的內容...'; }
+                else if(type === 'fun-typewriter') { label.innerText='⌨️ 打字機字體'; input.placeholder='代碼風...'; }
+                else if(type === 'fun-gradient-box') { label.innerText='🎨 漸層背景盒'; input.style.display='none'; isContainer=true; }
+            }
+
+            item.setAttribute('data-tag', type);
+            item.appendChild(delBtn);
+            item.appendChild(label);
+            if(input.style.display !== 'none') item.appendChild(input);
+
+            if(isContainer) {
+                let innerZone = document.createElement('div');
+                innerZone.className = 'puzzle-container-inner';
+                innerZone.ondrop = drop; 
+                innerZone.ondragover = allowDrop;
+                item.appendChild(innerZone);
+            }
+
+            return item;
+        }
+
+        // 遞迴生成 HTML
+        function crawlDOM(element) {
+            let code = "";
+            let children = element.children;
+
+            for(let child of children) {
+                if(!child.classList.contains('puzzle-item')) continue;
+
+                let tag = child.getAttribute('data-tag');
+                let val = child.querySelector('input') ? child.querySelector('input').value : "";
+                
+                // Text
+                if(tag === 'h1') code += `<h1>${val}</h1>\n`;
+                else if(tag === 'h2') code += `<h2>${val}</h2>\n`;
+                else if(tag === 'h3') code += `<h3>${val}</h3>\n`;
+                else if(tag === 'p') code += `<p>${val}</p>\n`;
+                else if(tag === 'bold') code += `<b>${val}</b><br>\n`;
+                else if(tag === 'italic') code += `<i>${val}</i><br>\n`;
+                else if(tag === 'quote') code += `<blockquote style="border-left:4px solid #ccc; margin:10px; padding:10px; background:#f9f9f9;">${val}</blockquote>\n`;
+                else if(tag === 'red-text') code += `<span style="color:red;">${val}</span><br>\n`;
+                else if(tag === 'blue-text') code += `<span style="color:blue;">${val}</span><br>\n`;
+                // Containers (Recurse)
+                else if(tag === 'ul') code += `<ul>\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</ul>\n`;
+                else if(tag === 'li') code += `<li>${val}</li>\n`;
+                
+                else if(tag === 'div-flex') code += `<div style="display:flex; gap:10px; align-items:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'div-center') code += `<div style="text-align:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'div-right') code += `<div style="text-align:right;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'div-col-2') code += `<div style="display:flex; gap:10px;"><div style="flex:1; border:1px dashed #ccc; padding:5px;">左欄 (請拖入)</div><div style="flex:1; border:1px dashed #ccc; padding:5px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div></div>\n`;
+                else if(tag === 'div-border') code += `<div style="border:1px solid #333; padding:15px; border-radius:4px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'div-shadow') code += `<div style="box-shadow:0 4px 6px rgba(0,0,0,0.1); padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'div-round') code += `<div style="border-radius:20px; border:1px solid #ccc; padding:15px; overflow:hidden;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                
+                else if(tag.startsWith('div-bg-')) {
+                    let color = tag.split('-')[2];
+                    if(color=='red') color='#fee2e2'; if(color=='blue') color='#dbeafe'; if(color=='green') color='#dcfce7'; if(color=='yellow') color='#fef9c3';
+                    code += `<div style="background-color:${color}; padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                }
+
+                // Media
+                else if(tag === 'button') code += `<button>${val||'Button'}</button>\n`;
+                else if(tag === 'blue-btn') code += `<button style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:4px;">${val||'Button'}</button>\n`;
+                else if(tag === 'img') { if(val) code += `<img src="${val}" style="max-width:100%; border-radius:4px;">\n`; }
+                else if(tag === 'img-circle') { if(val) code += `<img src="${val}" style="width:100px; height:100px; border-radius:50%; object-fit:cover;">\n`; }
+                else if(tag === 'link') { if(val) code += `<a href="${val}" target="_blank">連結</a><br>\n`; }
+                else if(tag === 'input') code += `<input type="text" placeholder="${val}">\n`;
+                else if(tag === 'checkbox') code += `<label><input type="checkbox"> ${val}</label><br>\n`;
+                else if(tag === 'select') code += `<select><option>選項 A</option><option>選項 B</option></select>\n`;
+                else if(tag === 'hr') code += `<hr>\n`;
+                else if(tag === 'progress') code += `<progress value="${val||50}" max="100"></progress>\n`;
+                else if(tag === 'video') code += `<div style="background:#000; color:#fff; width:200px; height:120px; display:flex; align-items:center; justify-content:center;">影片預覽</div>\n`;
+                else if(tag === 'marquee') code += `<marquee>${val||'Running...'}</marquee>\n`;
+
+                // Fun
+                else if(tag === 'fun-rainbow') code += `<span style="background: linear-gradient(to right, red, orange, yellow, green, blue, violet); -webkit-background-clip: text; color: transparent; font-weight: bold;">${val}</span><br>\n`;
+                else if(tag === 'fun-neon') code += `<button style="background:#000; color:#0f0; border:2px solid #0f0; padding:10px 20px; box-shadow: 0 0 10px #0f0; text-transform:uppercase;">${val||'NEON'}</button>\n`;
+                else if(tag === 'fun-glass') code += `<div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); padding:20px; border-radius:10px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+                else if(tag === 'fun-spin') code += `<div style="display:inline-block; animation: spin 2s linear infinite;">${val}</div>\n`;
+                else if(tag === 'fun-shake') code += `<div style="display:inline-block; animation: shake 0.5s infinite;">${val}</div>\n`;
+                else if(tag === 'fun-3d-btn') code += `<button style="background:#3b82f6; border:none; border-bottom:5px solid #1e3a8a; color:white; padding:10px 20px; border-radius:5px; font-weight:bold;">${val||'3D Button'}</button>\n`;
+                else if(tag === 'fun-spoiler') code += `<span style="background:black; color:black; padding:2px 5px; cursor:pointer;" onclick="this.style.color='white'; this.style.background='transparent'">${val}</span>\n`;
+                else if(tag === 'fun-typewriter') code += `<span style="font-family:monospace; border-right:2px solid #333; padding-right:5px;">${val}</span>\n`;
+                else if(tag === 'fun-gradient-box') code += `<div style="background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); padding:20px; border-radius:10px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
+            }
+            return code;
+        }
+
+        function renderPuzzle() {
+            let root = document.getElementById('puzzle-root');
+            let htmlBody = crawlDOM(root);
+            
+            // 加入關鍵影格 (Keyframes) 讓動畫能運作
+            let cssKeyframes = `
+                <style>
+                    body{font-family:'Inter',sans-serif; padding:20px; color:#333; line-height:1.6;}
+                    @keyframes spin { 100% { transform: rotate(360deg); } }
+                    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+                </style>
+            `;
+
+            let iframeDoc = document.getElementById('puzzle-result').contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(cssKeyframes + htmlBody);
+            iframeDoc.close();
+
+            document.getElementById('puzzle-source-display').value = htmlBody;
+        }
     </script>
 
     <script type="module">
+        // --- Firebase 雲端功能 (從第一個文件保留) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
@@ -385,7 +766,7 @@
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase 連線成功 (NO Storage)");
+            console.log("Firebase 連線成功 (完整雲端版)");
         } catch(e) { console.error(e); }
 
         // --- 1. 廣告上傳 (Base64 方案) ---
