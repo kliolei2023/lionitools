@@ -28,7 +28,7 @@
 
         .login-box {
             background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 16px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center; width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center; width: 400px; position: relative;
         }
         .close-login { position: absolute; top: 16px; right: 20px; font-size: 20px; color: #cbd5e1; cursor: pointer; }
         .close-login:hover { color: var(--danger); }
@@ -84,10 +84,8 @@
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
 
-        /* --- 新學貼貼碼 專用樣式 (從第二個文件完整複製) --- */
+        /* --- 新學貼貼碼 專用樣式 --- */
         .puzzle-layout { display: flex; height: 100%; gap: 15px; }
-        
-        /* 左側 Sidebar */
         .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; display:flex; flex-direction:column; overflow: hidden; }
         .puzzle-cat-tabs { display: flex; background: #cbd5e1; flex-wrap: wrap; }
         .puzzle-cat-btn { flex: 1; border: none; padding: 8px 5px; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; min-width: 25%; }
@@ -105,7 +103,6 @@
         .puzzle-block-source:hover { border-color: var(--primary-color); }
         .puzzle-block-source span { pointer-events: none; }
         
-        /* 中間 Workspace */
         .puzzle-workspace { 
             flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
             padding: 20px; overflow-y: auto; position: relative; min-height: 200px;
@@ -114,7 +111,6 @@
             border-color: var(--primary-color); background: #eff6ff; 
         }
 
-        /* 右側 預覽+代碼 */
         .puzzle-right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
         .puzzle-preview-area { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: white; }
         .puzzle-code-display { 
@@ -122,7 +118,6 @@
             padding: 15px; font-family: monospace; font-size: 13px; resize: none; border: none;
         }
         
-        /* --- 積木樣式 (Nested) --- */
         .puzzle-item { 
             background: #f8fafc; border: 1px solid #94a3b8; border-left: 5px solid var(--primary-color);
             padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;
@@ -145,7 +140,6 @@
         }
         .puzzle-container-inner:empty::before { content: "拖曳元件到此..."; color: #cbd5e1; font-size: 12px; }
 
-        /* 積木顏色指示 (分類識別) */
         .puzzle-item[data-cat="fun"] { border-left-color: #d946ef; background: #fdf4ff; }
         .puzzle-item[data-cat="layout"] { border-left-color: #8b5cf6; background: #f5f3ff; }
         .puzzle-item[data-cat="media"] { border-left-color: #10b981; }
@@ -169,7 +163,7 @@
         <div class="login-box" style="border: 2px solid #3b82f6;">
             <div class="close-login" onclick="closeAdminAuth()">✕</div>
             <h2 style="color:#3b82f6;">管理員驗證</h2>
-            <p>請輸入密碼</p>
+            <p style="font-size:12px; color:#64748b; margin:5px 0 15px;">請輸入管理員密碼</p>
             <input type="password" id="admin-password-input" placeholder="密碼">
             <div style="display:flex; gap:10px;">
                 <button class="btn-danger" style="width:100%" onclick="closeAdminAuth()">取消</button>
@@ -248,7 +242,6 @@
                 </div>
             </div>
 
-            <!-- 完整的新學貼貼碼頁面 (從第二個文件複製) -->
             <div id="code-puzzle" class="page-padded">
                 <h1>🧩 新學貼貼碼 (拖曳生成器)</h1>
                 <p style="color:#64748b; margin-bottom:15px; font-size:14px;">
@@ -264,7 +257,6 @@
                                 <button class="puzzle-cat-btn" style="color:#d946ef;" onclick="switchPuzzleCat('fun')">✨ 有趣</button>
                             </div>
                             <div class="puzzle-blocks-container">
-                                
                                 <div id="pcat-text" class="puzzle-cat-section active">
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 大標題 (H1)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h2">📄 中標題 (H2)</div>
@@ -278,7 +270,6 @@
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="red-text" style="color:#ef4444;">🔴 紅色字體</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-text" style="color:#3b82f6;">🔵 藍色字體</div>
                                 </div>
-                                
                                 <div id="pcat-layout" class="puzzle-cat-section">
                                     <div class="puzzle-block-source" style="border:1px solid #8b5cf6;" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列 (Flex Row)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-center">🎯 置中容器 (Center)</div>
@@ -292,7 +283,6 @@
                                     <div class="puzzle-block-source" style="background:#dcfce7;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-green">🟩 綠色背景</div>
                                     <div class="puzzle-block-source" style="background:#fef9c3;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-yellow">🟨 黃色警告</div>
                                 </div>
-                                
                                 <div id="pcat-media" class="puzzle-cat-section">
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="button">🔘 按鈕</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-btn">🔵 藍色按鈕</div>
@@ -306,7 +296,6 @@
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="progress">📊 進度條</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="video">🎬 影片框 (預設)</div>
                                 </div>
-
                                 <div id="pcat-fun" class="puzzle-cat-section">
                                     <div class="puzzle-block-source" style="background:linear-gradient(90deg, red, blue); color:white;" draggable="true" ondragstart="dragNew(event)" data-type="fun-rainbow">🌈 彩虹字 (Rainbow)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-neon">💡 霓虹按鈕 (Neon)</div>
@@ -329,7 +318,6 @@
                         <div class="puzzle-right-panel">
                             <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽 (Preview)</div>
                             <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
-                            
                             <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:5px;">💻 原始碼 (Source Code)</div>
                             <textarea id="puzzle-source-display" class="puzzle-code-display" readonly placeholder="這裡會顯示 HTML 代碼..."></textarea>
                         </div>
@@ -389,7 +377,7 @@
                             </select>
                             <button class="btn-primary" onclick="uploadAndAddAdBase64()" style="height:45px;">發布</button>
                         </div>
-                        <p style="color:#64748b; font-size:12px;">* 圖片大小限制 500KB 以下 (因為直接存入資料庫)</p>
+                        <p style="color:#64748b; font-size:12px;">* 圖片大小限制 500KB 以下</p>
                         
                         <h3 style="margin-top:20px;">已發布</h3>
                         <table id="ad-table"><thead><tr><th>位置</th><th>預覽</th><th>操作</th></tr></thead><tbody></tbody></table>
@@ -449,7 +437,7 @@
     </div>
 
     <script>
-        // --- 基本功能 (從第一個文件保留) ---
+        // --- 基本功能 ---
         function showPage(pageId) {
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
             const target = document.getElementById(pageId);
@@ -462,11 +450,7 @@
 
         function openAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'flex'; }
         function closeAdminAuth() { document.getElementById('admin-auth-screen').style.display = 'none'; document.getElementById('admin-password-input').value = ''; }
-        function verifyAdminPassword() {
-            if(document.getElementById('admin-password-input').value === "13210505") {
-                closeAdminAuth(); showPage('admin');
-            } else { alert("密碼錯誤"); }
-        }
+        
         function switchAdminTab(tabId) {
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
@@ -504,7 +488,7 @@
             if(confirm("確定要清空嗎？")) document.getElementById('admin-home-editor').value = "";
         }
 
-        // --- 新學貼貼碼功能 (從第二個文件完整複製) ---
+        // --- 新學貼貼碼功能 ---
         function switchPuzzleCat(cat) {
             document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
@@ -583,8 +567,6 @@
             
             let isContainer = false;
 
-            // --- 40+ 積木定義 ---
-            // 1. Text
             if(type === 'h1') { label.innerText='H1 大標題'; input.placeholder='大標題...'; }
             else if(type === 'h2') { label.innerText='H2 中標題'; input.placeholder='中標題...'; }
             else if(type === 'h3') { label.innerText='H3 小標題'; input.placeholder='小標題...'; }
@@ -594,10 +576,8 @@
             else if(type === 'quote') { label.innerText='引用 Blockquote'; input.placeholder='引用內容...'; }
             else if(type === 'red-text') { label.innerText='🔴 紅字'; input.placeholder='紅字...'; }
             else if(type === 'blue-text') { label.innerText='🔵 藍字'; input.placeholder='藍字...'; }
-            // 2. Lists (Containers)
             else if(type === 'ul') { label.innerText='🔢 列表容器 UL'; input.style.display='none'; isContainer=true; item.setAttribute('data-cat','layout'); }
             else if(type === 'li') { label.innerText='🔸 列表項目 LI'; input.placeholder='項目內容...'; }
-            // 3. Layout (Containers)
             else if(type.startsWith('div-')) {
                 isContainer = true; item.setAttribute('data-cat','layout');
                 if(type === 'div-flex') { label.innerText='↔️ 橫向排列 (Flex)'; input.style.display='none'; }
@@ -612,7 +592,6 @@
                 else if(type === 'div-bg-green') { label.innerText='🟩 綠色背景'; input.style.display='none'; item.style.backgroundColor='#dcfce7'; }
                 else if(type === 'div-bg-yellow') { label.innerText='🟨 黃色警告'; input.style.display='none'; item.style.backgroundColor='#fef9c3'; }
             }
-            // 4. Media
             else if(type === 'button') { label.innerText='按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
             else if(type === 'blue-btn') { label.innerText='藍色按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
             else if(type === 'img') { label.innerText='圖片 URL'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
@@ -625,7 +604,6 @@
             else if(type === 'progress') { label.innerText='進度條 %'; input.placeholder='50'; item.setAttribute('data-cat','media'); }
             else if(type === 'video') { label.innerText='影片框'; input.style.display='none'; item.setAttribute('data-cat','media'); }
             else if(type === 'marquee') { label.innerText='跑馬燈'; input.placeholder='跑動的文字...'; item.setAttribute('data-cat','media'); }
-            // 5. Fun
             else if(type.startsWith('fun-')) {
                 item.setAttribute('data-cat','fun');
                 if(type === 'fun-rainbow') { label.innerText='🌈 彩虹字'; input.placeholder='彩虹文字...'; }
@@ -655,7 +633,6 @@
             return item;
         }
 
-        // 遞迴生成 HTML
         function crawlDOM(element) {
             let code = "";
             let children = element.children;
@@ -666,7 +643,6 @@
                 let tag = child.getAttribute('data-tag');
                 let val = child.querySelector('input') ? child.querySelector('input').value : "";
                 
-                // Text
                 if(tag === 'h1') code += `<h1>${val}</h1>\n`;
                 else if(tag === 'h2') code += `<h2>${val}</h2>\n`;
                 else if(tag === 'h3') code += `<h3>${val}</h3>\n`;
@@ -676,25 +652,20 @@
                 else if(tag === 'quote') code += `<blockquote style="border-left:4px solid #ccc; margin:10px; padding:10px; background:#f9f9f9;">${val}</blockquote>\n`;
                 else if(tag === 'red-text') code += `<span style="color:red;">${val}</span><br>\n`;
                 else if(tag === 'blue-text') code += `<span style="color:blue;">${val}</span><br>\n`;
-                // Containers (Recurse)
                 else if(tag === 'ul') code += `<ul>\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</ul>\n`;
                 else if(tag === 'li') code += `<li>${val}</li>\n`;
-                
                 else if(tag === 'div-flex') code += `<div style="display:flex; gap:10px; align-items:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
                 else if(tag === 'div-center') code += `<div style="text-align:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
                 else if(tag === 'div-right') code += `<div style="text-align:right;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-col-2') code += `<div style="display:flex; gap:10px;"><div style="flex:1; border:1px dashed #ccc; padding:5px;">左欄 (請拖入)</div><div style="flex:1; border:1px dashed #ccc; padding:5px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div></div>\n`;
+                else if(tag === 'div-col-2') code += `<div style="display:flex; gap:10px;"><div style="flex:1; border:1px dashed #ccc; padding:5px;">左欄</div><div style="flex:1; border:1px dashed #ccc; padding:5px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div></div>\n`;
                 else if(tag === 'div-border') code += `<div style="border:1px solid #333; padding:15px; border-radius:4px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
                 else if(tag === 'div-shadow') code += `<div style="box-shadow:0 4px 6px rgba(0,0,0,0.1); padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
                 else if(tag === 'div-round') code += `<div style="border-radius:20px; border:1px solid #ccc; padding:15px; overflow:hidden;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                
                 else if(tag.startsWith('div-bg-')) {
                     let color = tag.split('-')[2];
                     if(color=='red') color='#fee2e2'; if(color=='blue') color='#dbeafe'; if(color=='green') color='#dcfce7'; if(color=='yellow') color='#fef9c3';
                     code += `<div style="background-color:${color}; padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
                 }
-
-                // Media
                 else if(tag === 'button') code += `<button>${val||'Button'}</button>\n`;
                 else if(tag === 'blue-btn') code += `<button style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:4px;">${val||'Button'}</button>\n`;
                 else if(tag === 'img') { if(val) code += `<img src="${val}" style="max-width:100%; border-radius:4px;">\n`; }
@@ -707,8 +678,6 @@
                 else if(tag === 'progress') code += `<progress value="${val||50}" max="100"></progress>\n`;
                 else if(tag === 'video') code += `<div style="background:#000; color:#fff; width:200px; height:120px; display:flex; align-items:center; justify-content:center;">影片預覽</div>\n`;
                 else if(tag === 'marquee') code += `<marquee>${val||'Running...'}</marquee>\n`;
-
-                // Fun
                 else if(tag === 'fun-rainbow') code += `<span style="background: linear-gradient(to right, red, orange, yellow, green, blue, violet); -webkit-background-clip: text; color: transparent; font-weight: bold;">${val}</span><br>\n`;
                 else if(tag === 'fun-neon') code += `<button style="background:#000; color:#0f0; border:2px solid #0f0; padding:10px 20px; box-shadow: 0 0 10px #0f0; text-transform:uppercase;">${val||'NEON'}</button>\n`;
                 else if(tag === 'fun-glass') code += `<div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); padding:20px; border-radius:10px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
@@ -725,8 +694,6 @@
         function renderPuzzle() {
             let root = document.getElementById('puzzle-root');
             let htmlBody = crawlDOM(root);
-            
-            // 加入關鍵影格 (Keyframes) 讓動畫能運作
             let cssKeyframes = `
                 <style>
                     body{font-family:'Inter',sans-serif; padding:20px; color:#333; line-height:1.6;}
@@ -734,23 +701,22 @@
                     @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
                 </style>
             `;
-
             let iframeDoc = document.getElementById('puzzle-result').contentWindow.document;
             iframeDoc.open();
             iframeDoc.write(cssKeyframes + htmlBody);
             iframeDoc.close();
-
             document.getElementById('puzzle-source-display').value = htmlBody;
         }
     </script>
 
     <script type="module">
-        // --- Firebase 雲端功能 (從第一個文件保留) ---
+        // --- Firebase 雲端功能與登入驗證 ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
-            doc, deleteDoc, updateDoc, increment, setDoc, getDoc
+            doc, deleteDoc, updateDoc, increment, setDoc 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3CH5yPOYsWnVFuAG-Frk-GhNDDKdhk1Y",
@@ -762,14 +728,33 @@
             measurementId: "G-F2JWVM6CSV"
         };
 
-        let app, db;
+        let app, db, auth;
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase 連線成功 (完整雲端版)");
+            auth = getAuth(app);
+            console.log("Firebase 連線成功 (雲端驗證版)");
         } catch(e) { console.error(e); }
 
-        // --- 1. 廣告上傳 (Base64 方案) ---
+        // --- Firebase 管理員登入驗證（取代舊的寫死密碼） ---
+        window.verifyAdminPassword = async function() {
+            let passwordInput = document.getElementById('admin-password-input').value;
+            if(!passwordInput) return alert("請輸入密碼");
+
+            try {
+                // 使用你在 Firebase Authentication 建立的管理員信箱進行雲端驗證
+                await signInWithEmailAndPassword(auth, "leiwengsi@fatima.edu.mo", passwordInput);
+                
+                // 驗證成功
+                closeAdminAuth(); 
+                showPage('admin');
+            } catch(error) {
+                console.error(error);
+                alert("密碼錯誤或驗證失敗！");
+            }
+        };
+
+        // --- 廣告上傳 (Base64 方案) ---
         window.uploadAndAddAdBase64 = function() {
             const fileInput = document.getElementById('ad-img-file');
             const file = fileInput.files[0];
@@ -784,23 +769,17 @@
                 const base64String = e.target.result;
                 try {
                     await addDoc(collection(db, "ads"), { 
-                        img: base64String, 
-                        link: link, 
-                        pos: pos, 
-                        timestamp: serverTimestamp() 
+                        img: base64String, link: link, pos: pos, timestamp: serverTimestamp() 
                     });
                     alert("廣告發布成功！");
                     fileInput.value = '';
                     document.getElementById('ad-link-input').value = '';
-                } catch(err) {
-                    console.error(err);
-                    alert("發布失敗：" + err.message);
-                }
+                } catch(err) { alert("發布失敗：" + err.message); }
             };
             reader.readAsDataURL(file);
         };
 
-        // --- 2. 同步廣告 ---
+        // --- 同步廣告 ---
         onSnapshot(collection(db, "ads"), (snapshot) => {
             document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
             const adTable = document.querySelector('#ad-table tbody');
@@ -809,13 +788,11 @@
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
                 const id = docSnap.id;
-                // 前台
                 const slot = document.getElementById('ad-pos-' + data.pos);
                 if(slot) {
                     slot.style.display = "block";
                     slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
                 }
-                // 後台
                 if(adTable) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${data.pos}</td><td><img src="${data.img}" style="height:40px; object-fit:cover;"></td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">Del</button></td>`;
@@ -824,7 +801,7 @@
             });
         });
 
-        // --- 其他同步功能 (維持原樣) ---
+        // --- 瀏覽次數與登入日誌 ---
         const statsRef = doc(db, "stats", "main");
         onSnapshot(statsRef, (docSnap) => {
             if (docSnap.exists()) { document.getElementById('total-visits-display').innerText = docSnap.data().total_visits || 0; }
@@ -850,6 +827,7 @@
             });
         });
 
+        // --- 留言板 ---
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
@@ -878,6 +856,7 @@
             alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
+        // --- 使用者自製工具 ---
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
@@ -921,6 +900,7 @@
             }
         };
 
+        // --- 廣告申請 ---
         onSnapshot(query(collection(db, "ad_requests"), orderBy("timestamp", "desc")), (snapshot) => {
             const table = document.querySelector('#ad-req-table tbody');
             if(!table) return;
@@ -940,6 +920,7 @@
              alert("申請已送出");
         };
 
+        // --- 主頁編輯 ---
         const homeRef = doc(db, "site_content", "home_intro");
         onSnapshot(homeRef, (docSnap) => {
              if (docSnap.exists()) {
