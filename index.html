@@ -151,13 +151,28 @@
         .page-full.active { display: block; }
         iframe.tool-frame { width: 100%; height: 100%; border: none; }
 
-        /* --- 公告欄樣式 --- */
+        /* --- 公告欄與標籤樣式 --- */
         .announcement-card { background: white; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
         .announcement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .announcement-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .announcement-title { font-size: 16px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
         .announcement-date { font-size: 12px; color: #64748b; }
         .announcement-body { font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 12px; white-space: pre-wrap; }
-        .announcement-file-box { background: #f8fafc; border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .tag-badge { background: #e0e7ff; color: var(--primary-color); padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .announcement-file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+        .announcement-file-item { background: #f8fafc; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-btn { background: white; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 500; color: #64748b; transition: var(--transition); }
+        .filter-btn:hover, .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* --- 視覺化圖表樣式 --- */
+        .chart-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+        .chart-card { background: white; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); }
+        .bar-chart-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; }
+        .bar-label { width: 80px; color: #64748b; text-align: right; }
+        .bar-track { flex: 1; background: #f1f5f9; height: 16px; border-radius: 8px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; background: var(--primary-color); border-radius: 8px; transition: width 0.5s ease; }
+        .bar-value { width: 40px; font-weight: 600; color: var(--text-main); }
 
         /* --- 貼貼碼樣式 --- */
         .puzzle-layout { display: flex; height: 100%; gap: 20px; }
@@ -357,10 +372,19 @@
                 <div class="card"><div id="home-dynamic-content">載入中...</div></div>
             </div>
 
-            <!-- 公布欄頁面 -->
+            <!-- 公布欄頁面 (含標籤過濾) -->
             <div id="announcements" class="page-padded">
                 <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">📢 佈公欄 (課程教材與課後通知)</h1>
-                <p style="color:#64748b; margin-bottom:20px; font-size:13px;">這裡提供老師發布的上課教材與重要通知，同學可根據權限進行查看或下載。</p>
+                <p style="color:#64748b; margin-bottom:16px; font-size:13px;">這裡提供老師發布的多檔案教材與重要通知，可透過下方標籤一鍵過濾尋找。</p>
+                
+                <div class="filter-bar" id="announcement-filter-bar">
+                    <button class="filter-btn active" onclick="filterAnnouncements('all')">全部公告</button>
+                    <button class="filter-btn" onclick="filterAnnouncements('課程簡報')">#課程簡報</button>
+                    <button class="filter-btn" onclick="filterAnnouncements('課後作業')">#課後作業</button>
+                    <button class="filter-btn" onclick="filterAnnouncements('考試通知')">#考試通知</button>
+                    <button class="filter-btn" onclick="filterAnnouncements('程式碼範例')">#程式碼範例</button>
+                </div>
+
                 <div id="announcements-container">
                     <div style="color:#64748b; font-size:14px;">載入公告中...</div>
                 </div>
@@ -508,7 +532,7 @@
                     <span style="font-size:12px; background:#e0e7ff; color:var(--primary-color); padding:6px 12px; border-radius:20px; font-weight:600;">Admin Mode</span>
                 </div>
                 <div class="admin-tabs">
-                    <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 總覽 (日誌)</button>
+                    <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 總覽與圖表</button>
                     <button onclick="switchAdminTab('tab-announcements')">📢 佈公欄管理</button>
                     <button onclick="switchAdminTab('tab-review')">🔍 作品審查</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言管理</button>
@@ -516,10 +540,25 @@
                     <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具</button>
                 </div>
                 
+                <!-- 總覽與視覺化圖表後台 -->
                 <div id="tab-dashboard" class="admin-section active">
+                    <div class="card" style="margin-bottom:24px;">
+                        <h3 style="margin-bottom:16px; font-weight:600;">📈 數位學習活躍度視覺化儀表板</h3>
+                        <div class="chart-container">
+                            <div class="chart-card">
+                                <h4 style="font-size:14px; margin-bottom:12px; color:#475569;">📚 各年級學生作品上傳分佈</h4>
+                                <div id="grade-chart-bars">載入中...</div>
+                            </div>
+                            <div class="chart-card">
+                                <h4 style="font-size:14px; margin-bottom:12px; color:#475569;">🔥 熱門作品觀看次數排行 (Top 5)</h4>
+                                <div id="popular-chart-bars">載入中...</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <h3 style="margin-bottom:16px; font-weight:600;">系統操作日誌</h3>
-                        <div style="max-height:400px; overflow-y:auto;">
+                        <div style="max-height:300px; overflow-y:auto;">
                             <table id="log-table">
                                 <thead><tr><th>時間</th><th>用戶</th><th>動作</th></tr></thead>
                                 <tbody></tbody>
@@ -528,19 +567,23 @@
                     </div>
                 </div>
 
-                <!-- 佈公欄後台管理 -->
+                <!-- 佈公欄後台管理 (支援多檔案) -->
                 <div id="tab-announcements" class="admin-section">
                     <div class="card" style="margin-bottom:24px; border:2px dashed var(--primary-color);">
-                        <h3 style="margin-bottom:16px; font-weight:600; color:var(--primary-color);">➕ 發布新公告或教材</h3>
+                        <h3 style="margin-bottom:16px; font-weight:600; color:var(--primary-color);">➕ 發布新公告與多檔案教材</h3>
                         <input type="text" id="admin-ann-title" class="text-input" placeholder="公告標題 (例: 第一週上課簡報與練習)">
-                        <textarea id="admin-ann-content" class="text-input" style="height:100px;" placeholder="公告內容或說明文字..."></textarea>
                         
                         <div style="display:flex; gap:16px; margin-bottom:12px;">
                             <div style="flex:1;">
-                                <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">上傳附件檔案 (圖片、Word、PPT、PDF、文字、HTML)：</label>
-                                <input type="file" id="admin-ann-file" class="text-input" style="padding:6px;">
+                                <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">分類標籤：</label>
+                                <select id="admin-ann-tag" class="select-input">
+                                    <option value="課程簡報">#課程簡報</option>
+                                    <option value="課後作業">#課後作業</option>
+                                    <option value="考試通知">#考試通知</option>
+                                    <option value="程式碼範例">#程式碼範例</option>
+                                </select>
                             </div>
-                            <div style="width:200px;">
+                            <div style="flex:1;">
                                 <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">學生權限設定：</label>
                                 <select id="admin-ann-permission" class="select-input">
                                     <option value="download">允許下載與查看</option>
@@ -548,14 +591,20 @@
                                 </select>
                             </div>
                         </div>
-                        <button class="btn-primary" onclick="postAnnouncement()">發布公告</button>
+
+                        <textarea id="admin-ann-content" class="text-input" style="height:90px;" placeholder="公告內容或說明文字..."></textarea>
+                        
+                        <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">上傳多個附件檔案（可按住 Ctrl 鍵複選多個檔案）：</label>
+                        <input type="file" id="admin-ann-files" class="text-input" style="padding:6px;" multiple>
+                        
+                        <button class="btn-primary" onclick="postAnnouncement()" style="margin-top:8px;">發布公告</button>
                     </div>
 
                     <div class="card">
                         <h3 style="margin-bottom:16px; font-weight:600;">已發布公告列表</h3>
                         <div style="max-height:400px; overflow-y:auto;">
                             <table id="admin-announcement-table">
-                                <thead><tr><th>標題與內容</th><th>權限</th><th>附件檔案</th><th>操作</th></tr></thead>
+                                <thead><tr><th>標題與標籤</th><th>權限</th><th>附件數量</th><th>操作</th></tr></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -721,6 +770,66 @@
             else if('中文代碼'.includes(kw)) showPage('translator');
             else if('留言'.includes(kw)) showPage('guestbook');
             else if('簡介'.includes(kw)) showPage('home');
+        }
+
+        // --- 公告標籤過濾邏輯 ---
+        let currentAnnouncementFilter = 'all';
+        let allAnnouncementsData = [];
+
+        window.filterAnnouncements = function(tag) {
+            currentAnnouncementFilter = tag;
+            document.querySelectorAll('#announcement-filter-bar .filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            renderAnnouncementsList();
+        };
+
+        function renderAnnouncementsList() {
+            const frontContainer = document.getElementById('announcements-container');
+            if(!frontContainer) return;
+            frontContainer.innerHTML = "";
+
+            let filtered = allAnnouncementsData.filter(item => currentAnnouncementFilter === 'all' || item.tag === currentAnnouncementFilter);
+
+            if(filtered.length === 0) {
+                frontContainer.innerHTML = `<div style="color:#64748b; font-size:14px;">此分類目前尚無公告或教材</div>`;
+                return;
+            }
+
+            filtered.forEach(data => {
+                let fileListHtml = '';
+                if(data.files && data.files.length > 0) {
+                    fileListHtml = `<div class="announcement-file-list">`;
+                    data.files.forEach(file => {
+                        let actionBtn = '';
+                        if(data.permission === 'download') {
+                            actionBtn = `<a href="${file.data}" download="${file.name}" class="btn-success" style="text-decoration:none; display:inline-block; font-size:11px; padding:4px 10px;">📥 下載檔案</a>`;
+                        } else {
+                            actionBtn = `<button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(file.name)}', '<iframe src=\\'${file.data}\\' style=\\'width:100%;height:100%;border:none;\\'></iframe>')" style="font-size:11px; padding:4px 10px;">👀 線上查看</button>`;
+                        }
+                        fileListHtml += `
+                            <div class="announcement-file-item">
+                                <span style="font-size:13px; font-weight:500;">📎 ${escapeHtml(file.name)}</span>
+                                ${actionBtn}
+                            </div>
+                        `;
+                    });
+                    fileListHtml += `</div>`;
+                }
+
+                frontContainer.innerHTML += `
+                    <div class="announcement-card">
+                        <div class="announcement-header">
+                            <div class="announcement-title">
+                                ${escapeHtml(data.title)}
+                                <span class="tag-badge">#${escapeHtml(data.tag || '課程簡報')}</span>
+                            </div>
+                            <div class="announcement-date">🕒 ${data.timeStr || ''}</div>
+                        </div>
+                        <div class="announcement-body">${escapeHtml(data.content)}</div>
+                        ${fileListHtml}
+                    </div>
+                `;
+            });
         }
 
         // --- 貼貼碼邏輯 ---
@@ -917,109 +1026,85 @@
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        // --- 佈公欄發布與管理邏輯 ---
+        // --- 佈公欄多檔案發布與管理邏輯 ---
         window.postAnnouncement = async function() {
             let title = document.getElementById('admin-ann-title').value.trim();
             let content = document.getElementById('admin-ann-content').value.trim();
+            let tag = document.getElementById('admin-ann-tag').value;
             let permission = document.getElementById('admin-ann-permission').value;
-            let fileInput = document.getElementById('admin-ann-file');
+            let fileInput = document.getElementById('admin-ann-files');
 
             if(!title || !content) return alert("請填寫公告標題與內容！");
 
-            let fileData = null;
-            if(fileInput.files && fileInput.files[0]) {
-                let file = fileInput.files[0];
-                let reader = new FileReader();
-                reader.onload = async function(e) {
-                    fileData = {
-                        name: file.name,
-                        data: e.target.result, // Base64 資料
-                        type: file.type
+            let filesArray = [];
+            let files = fileInput.files;
+
+            if(files && files.length > 0) {
+                let processedCount = 0;
+                for(let i = 0; i < files.length; i++) {
+                    let file = files[i];
+                    let reader = new FileReader();
+                    reader.onload = async function(e) {
+                        filesArray.push({
+                            name: file.name,
+                            data: e.target.result,
+                            type: file.type
+                        });
+                        processedCount++;
+                        if(processedCount === files.length) {
+                            await saveAnnouncementToDB(title, content, tag, permission, filesArray);
+                        }
                     };
-                    await saveAnnouncementToDB(title, content, permission, fileData);
-                };
-                reader.readAsDataURL(file);
+                    reader.readAsDataURL(file);
+                }
             } else {
-                await saveAnnouncementToDB(title, content, permission, null);
+                await saveAnnouncementToDB(title, content, tag, permission, []);
             }
         };
 
-        async function saveAnnouncementToDB(title, content, permission, fileData) {
+        async function saveAnnouncementToDB(title, content, tag, permission, filesArray) {
             try {
                 await addDoc(collection(db, "announcements"), {
                     title: title,
                     content: content,
-                    permission: permission, // 'download' 或 'view'
-                    file: fileData,
+                    tag: tag,
+                    permission: permission,
+                    files: filesArray,
                     timeStr: new Date().toLocaleString(),
                     timestamp: serverTimestamp()
                 });
                 alert("公告發布成功！");
                 document.getElementById('admin-ann-title').value = "";
                 document.getElementById('admin-ann-content').value = "";
-                document.getElementById('admin-ann-file').value = "";
+                document.getElementById('admin-ann-files').value = "";
             } catch(e) { alert("發布失敗：" + e.message); }
         }
 
-        // 監聽並渲染公告欄
         onSnapshot(query(collection(db, "announcements"), orderBy("timestamp", "desc")), (snapshot) => {
-            const frontContainer = document.getElementById('announcements-container');
             const adminTbody = document.querySelector('#admin-announcement-table tbody');
-            if(frontContainer) frontContainer.innerHTML = "";
             if(adminTbody) adminTbody.innerHTML = "";
-
-            if(snapshot.empty) {
-                if(frontContainer) frontContainer.innerHTML = `<div style="color:#64748b; font-size:14px;">目前尚無任何公告或教材</div>`;
-            }
+            allAnnouncementsData = [];
 
             snapshot.forEach(docSnap => {
                 let data = docSnap.data();
                 let id = docSnap.id;
-                let permText = data.permission === 'download' ? '<span style="color:#10b981; font-weight:600;">📥 可下載與查看</span>' : '<span style="color:#f59e0b; font-weight:600;">👀 僅供查看</span>';
+                allAnnouncementsData.push({ id, ...data });
 
-                // 前台顯示
-                if(frontContainer) {
-                    let fileSection = '';
-                    if(data.file) {
-                        let actionBtns = '';
-                        if(data.permission === 'download') {
-                            actionBtns = `<a href="${data.file.data}" download="${data.file.name}" class="btn-success" style="text-decoration:none; display:inline-block; font-size:12px;">📥 下載檔案</a>`;
-                        } else {
-                            actionBtns = `<button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(data.file.name)}', '<iframe src=\\'${data.file.data}\\' style=\\'width:100%;height:100%;border:none;\\'></iframe>')" style="font-size:12px;">👀 線上查看</button>`;
-                        }
-                        fileSection = `
-                            <div class="announcement-file-box">
-                                <span style="font-size:13px; font-weight:500;">📎 附件：${escapeHtml(data.file.name)}</span>
-                                ${actionBtns}
-                            </div>
-                        `;
-                    }
+                let permText = data.permission === 'download' ? '<span style="color:#10b981; font-weight:600;">📥 可下載</span>' : '<span style="color:#f59e0b; font-weight:600;">👀 僅查看</span>';
 
-                    frontContainer.innerHTML += `
-                        <div class="announcement-card">
-                            <div class="announcement-header">
-                                <div class="announcement-title">${escapeHtml(data.title)}</div>
-                                <div class="announcement-date">🕒 ${data.timeStr || ''}</div>
-                            </div>
-                            <div class="announcement-body">${escapeHtml(data.content)}</div>
-                            ${fileSection}
-                        </div>
-                    `;
-                }
-
-                // 後台管理表格
                 if(adminTbody) {
-                    let fileInfo = data.file ? escapeHtml(data.file.name) : '無附件';
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><b>${escapeHtml(data.title)}</b><br><small style="color:#64748b;">${escapeHtml(data.content.substring(0, 40))}...</small></td>
+                        <td><b>${escapeHtml(data.title)}</b><br><small style="color:var(--primary-color);">#${escapeHtml(data.tag || '課程簡報')}</small></td>
                         <td>${permText}</td>
-                        <td>${fileInfo}</td>
-                        <td><button class="btn-danger" onclick="delDoc('announcements', '${id}')">刪除公告</button></td>
+                        <td>${(data.files && data.files.length) || 0} 個檔案</td>
+                        <td><button class="btn-danger" onclick="delDoc('announcements', '${id}')">刪除</button></td>
                     `;
                     adminTbody.appendChild(tr);
                 }
             });
+
+            renderAnnouncementsList();
         });
 
         window.userAddNewTool = async function() {
@@ -1175,6 +1260,8 @@
             const pagesContainer = document.getElementById('dynamic-pages');
             const adminToolsTable = document.querySelector('#tool-manage-table tbody');
             const leaderboardContainer = document.getElementById('leaderboard-list');
+            const gradeChartBars = document.getElementById('grade-chart-bars');
+            const popularChartBars = document.getElementById('popular-chart-bars');
             
             let totalToolsCount = snapshot.size;
             document.getElementById('stat-total-tools').innerText = totalToolsCount;
@@ -1185,6 +1272,7 @@
             let middleSchoolTools = [];
             let primarySchoolTools = [];
             let allToolsArray = [];
+            let gradeCounts = { '1年級': 0, '2年級': 0, '3年級': 0, '4年級': 0, '5年級': 0, '6年級': 0 };
 
             snapshot.forEach((docSnap) => {
                 let data = docSnap.data();
@@ -1196,6 +1284,12 @@
                 let schoolType = data.schoolType || "中學";
                 let grade = data.grade || "1";
                 let isVisible = data.isVisible !== false;
+
+                if (role === 'student') {
+                    teacherTools.push({ id, ...data }); // 暫時分類計數用
+                    let gKey = grade + '年級';
+                    if(gradeCounts[gKey] !== undefined) gradeCounts[gKey]++;
+                }
 
                 if (role === 'teacher') teacherTools.push({ id, ...data });
                 else if (schoolType === '中學') middleSchoolTools.push({ id, ...data });
@@ -1240,6 +1334,42 @@
                 }
             });
 
+            // 渲染後台視覺化圖表：年級分佈
+            if(gradeChartBars) {
+                let maxGradeCount = Math.max(...Object.values(gradeCounts), 1);
+                let htmlBars = '';
+                for(let g in gradeCounts) {
+                    let count = gradeCounts[g];
+                    let pct = (count / maxGradeCount) * 100;
+                    htmlBars += `
+                        <div class="bar-chart-row">
+                            <div class="bar-label">${g}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                            <div class="bar-value">${count} 篇</div>
+                        </div>
+                    `;
+                }
+                gradeChartBars.innerHTML = htmlBars;
+            }
+
+            // 渲染後台視覺化圖表：熱門觀看排行
+            if(popularChartBars) {
+                let topTools = [...allToolsArray].sort((a,b)=>(b.usageCount||0)-(a.usageCount||0)).slice(0,5);
+                let maxView = Math.max(...topTools.map(t=>t.usageCount||0), 1);
+                let popHtml = '';
+                topTools.forEach(t => {
+                    let pct = ((t.usageCount||0) / maxView) * 100;
+                    popHtml += `
+                        <div class="bar-chart-row">
+                            <div class="bar-label" style="width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width: ${pct}%; background:#10b981;"></div></div>
+                            <div class="bar-value">${t.usageCount||0} 次</div>
+                        </div>
+                    `;
+                });
+                popularChartBars.innerHTML = popHtml || '<div style="color:#64748b; font-size:12px;">尚無數據</div>';
+            }
+
             if(leaderboardContainer) {
                 let sortedTools = [...allToolsArray].filter(t => t.isVisible !== false).sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, 5);
                 if(sortedTools.length === 0) {
@@ -1269,7 +1399,7 @@
             }
 
             let teacherGroupHtml = '';
-            teacherTools.filter(t => t.isVisible !== false).forEach(t => { teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
+            teacherTools.filter(t => t.isVisible !== false && t.role === 'teacher').forEach(t => { teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
 
             let middleGroupHtml = '';
             middleSchoolTools.filter(t => t.isVisible !== false).forEach(t => { middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
@@ -1278,7 +1408,7 @@
             primarySchoolTools.filter(t => t.isVisible !== false).forEach(t => { primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
 
             container.innerHTML = `
-                <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.filter(t=>t.isVisible!==false).length})</button>
+                <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.filter(t=>t.isVisible!==false && t.role==='teacher').length})</button>
                 <div id="sub-teacher" class="sub-nav-group">${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}</div>
 
                 <button class="nav-btn" onclick="toggleSubNav('sub-student')">📚 學生工具 (${middleSchoolTools.filter(t=>t.isVisible!==false).length + primarySchoolTools.filter(t=>t.isVisible!==false).length})</button>
