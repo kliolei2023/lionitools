@@ -348,9 +348,8 @@
             reader.readAsText(file);
         }
 
-        let activePreviewCode = "";
+        // 使用安全的方式開啟預覽彈窗 (透過 DOM 事件繫結，徹底解決引號與換行符號報錯問題)
         function openPreviewModal(title, code) {
-            activePreviewCode = code;
             document.getElementById('preview-title').innerText = "預覽作品：" + title;
             document.getElementById('modal-iframe').srcdoc = code;
             document.getElementById('modal-textarea').value = code;
@@ -396,12 +395,10 @@
             auth = getAuth(app);
         } catch(e) { console.error(e); }
 
-        // --- 優化錯誤顯示的管理員驗證 ---
         window.verifyAdminPassword = async function() {
             let passwordInput = document.getElementById('admin-password-input').value;
             if(!passwordInput) return alert("請輸入密碼");
             try {
-                // 自動帶入指定管理員信箱
                 await signInWithEmailAndPassword(auth, "leiwengsi@fatima.edu.mo", passwordInput);
                 closeAdminAuth(); 
                 showPage('admin');
@@ -412,8 +409,6 @@
                     errMessage = "密碼錯誤，請重新輸入。";
                 } else if(error.code === 'auth/user-not-found') {
                     errMessage = "找不到此管理員帳號，請確認 Firebase 中是否已建立該信箱。";
-                } else if(error.code === 'auth/invalid-email') {
-                    errMessage = "管理員信箱格式有誤。";
                 } else {
                     errMessage = "登入失敗：" + error.message;
                 }
@@ -473,6 +468,7 @@
             } catch(err) { alert("提交失敗：" + err.message); }
         };
 
+        // 即時同步審查清單並安全繫結預覽按鈕事件
         onSnapshot(query(collection(db, "pending_tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const tbody = document.querySelector('#review-table tbody');
             if(!tbody) return;
@@ -488,14 +484,34 @@
                     <td>${escapeHtml(info)}</td>
                     <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">${escapeHtml(data.desc)}</small></td>
                     <td>
-                        <button class="btn-primary" onclick="openPreviewModal('${escapeHtml(data.name).replace(/'/g, "\\'")}', decodeURIComponent('${encodeURIComponent(data.code)}'))">🔍 開啟HTML與原始碼</button>
+                        <button class="btn-primary preview-btn" data-id="${id}">🔍 開啟HTML與原始碼</button>
                     </td>
                     <td>
-                        <button class="btn-success" onclick="approveTool('${id}')">通過</button>
-                        <button class="btn-danger" onclick="delDoc('pending_tools', '${id}')">刪除</button>
+                        <button class="btn-success approve-btn" data-id="${id}">通過</button>
+                        <button class="btn-danger delete-btn" data-id="${id}">刪除</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+
+            // 為產生的按鈕加上安全監聽器，解決引號衝突打不開的問題
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                let item = snapshot.docs.find(d => d.id === id);
+                if(item) {
+                    let d = item.data();
+                    btn.onclick = () => openPreviewModal(d.name, d.code);
+                }
+            });
+
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                btn.onclick = () => approveTool(id);
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                btn.onclick = () => delDoc('pending_tools', id);
             });
         });
 
