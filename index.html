@@ -49,7 +49,6 @@
         #main-app { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; }
         
-        /* 漢堡折疊式 HOME 標題 */
         .sidebar-header { 
             padding: 20px; color: #fff; font-weight: 700; font-size: 16px; 
             display: flex; justify-content: space-between; align-items: center; cursor: pointer;
@@ -69,7 +68,6 @@
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: var(--sidebar-active-bg); color: var(--primary-color); font-weight: 600; }
 
-        /* 二級選單縮排樣式 */
         .sub-nav-group { margin-left: 10px; border-left: 2px solid #334155; padding-left: 5px; display: none; }
         .sub-nav-group.active { display: block; }
         .nav-sub-btn { font-size: 13px; padding: 8px 10px; color: #94a3b8; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; border-radius: 4px; }
@@ -81,7 +79,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .text-input, .select-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; margin-bottom: 10px; background: white; }
+        .text-input, .select-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; margin-bottom: 8px; background: white; font-size: 13px; }
         
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #f1f5f9; color: #64748b; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
@@ -97,6 +95,42 @@
         #dynamic-pages { position: absolute; top: 0; pointer-events: none; }
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
+
+        /* --- 貼貼碼積木學習介面樣式 --- */
+        .puzzle-layout { display: flex; height: 100%; gap: 15px; }
+        .puzzle-sidebar { width: 280px; background: #f1f5f9; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
+        .puzzle-cat-tabs { display: flex; background: #e2e8f0; flex-wrap: wrap; }
+        .puzzle-cat-btn { flex: 1; border: none; padding: 8px 2px; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #475569; min-width: 33%; text-align: center; }
+        .puzzle-cat-btn.active { background: white; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+        .puzzle-blocks-container { padding: 10px; overflow-y: auto; flex: 1; max-height: 520px; }
+        .puzzle-cat-section { display: none; }
+        .puzzle-cat-section.active { display: block; }
+        .puzzle-block-source { 
+            background: white; border: 1px solid var(--border-color); padding: 8px 10px; margin-bottom: 6px; 
+            border-radius: 6px; cursor: grab; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s;
+        }
+        .puzzle-block-source:active { cursor: grabbing; transform: scale(0.98); }
+        
+        .puzzle-workspace { 
+            flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
+            padding: 20px; overflow-y: auto; position: relative; min-height: 400px;
+        }
+        .puzzle-right-panel { width: 380px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+        .puzzle-preview-area { flex: 1; border: 1px solid var(--border-color); border-radius: 8px; background: white; height: 250px; }
+        .puzzle-code-display { 
+            flex: 1; background: #1e293b; color: #10b981; border-radius: 8px; 
+            padding: 15px; font-family: monospace; font-size: 12px; resize: none; border: none; height: 250px;
+        }
+        .puzzle-item { 
+            background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color);
+            padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 6px;
+            position: relative; box-shadow: var(--shadow-sm);
+        }
+        .puzzle-delete-btn { 
+            position: absolute; top: 8px; right: 8px; background: #fee2e2; color: #ef4444; 
+            border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 22px; text-align: center; z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -106,8 +140,8 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>李老師工具站</h2>
-            <p>歡迎使用 (雲端審查版)</p>
-            <input type="text" id="username" placeholder="您的姓名 (選填)">
+            <p>歡迎使用 </p>
+            <input type="text" id="username" placeholder="您的姓名 ">
             <button onclick="handleLogin()">進入系統</button>
         </div>
     </div>
@@ -153,6 +187,7 @@
             <div class="sidebar-content" id="sidebar-content-area">
                 <div class="nav-category">原有系統</div>
                 <button class="nav-btn" onclick="showPage('translator')">🌐 代碼即打即有</button>
+                <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼 (HTML學習)</button>
                 <button class="nav-btn" onclick="showPage('add-tool')">➕ 上傳您製作的系統</button>
 
                 <div class="nav-category">一般</div>
@@ -195,6 +230,150 @@
                 <div class="card" style="display:flex; gap:20px; height:600px;">
                     <textarea id="trans-input" class="text-input" style="flex:1; background:#1e293b; color:#ccc; font-family:monospace;" oninput="updateCompilerPreview()"></textarea>
                     <iframe id="trans-preview" style="flex:1; border:1px solid #eee;"></iframe>
+                </div>
+            </div>
+
+            <!-- 升級版：新學貼貼碼 (6大分類，每類15個精選實用積木) -->
+            <div id="code-puzzle" class="page-padded">
+                <h1>🧩 新學貼貼碼 (6大分類各15+種旗艦版 HTML 學習區)</h1>
+                <p style="color:#64748b; margin-bottom:15px; font-size:14px;">左側 6 大分類各包含 15 種以上實用積木，拖曳即可自由組合，右側即時同步呈現效果與原始碼！</p>
+                <div class="card" style="height: 680px; padding: 20px;">
+                    <div class="puzzle-layout">
+                        <!-- 左側積木庫 -->
+                        <div class="puzzle-sidebar">
+                            <div class="puzzle-cat-tabs">
+                                <button class="puzzle-cat-btn active" onclick="switchPuzzleCat('text')">📝 文字</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('layout')">📍 排版</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('media')">🖼️ 媒體</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('form')">📋 表單</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('list')">📌 清單</button>
+                                <button class="puzzle-cat-btn" onclick="switchPuzzleCat('fun')">✨ 互動</button>
+                            </div>
+                            <div class="puzzle-blocks-container">
+                                <!-- 1. 文字類 (15種) -->
+                                <div id="pcat-text" class="puzzle-cat-section active">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 1. 大標題 (H1)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h2">📄 2. 中標題 (H2)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h3">📄 3. 小標題 (H3)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h4">📄 4. 標題 H4</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h5">📄 5. 標題 H5</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h6">📄 6. 標題 H6</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="p">📝 7. 標準段落 (P)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="span">🏷️ 8. 內聯標籤 (Span)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="quote">💬 9. 引用區塊 (Blockquote)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="strong">📌 10. 粗體強調 (Strong)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="em">📌 11. 斜體強調 (Em)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="mark">📌 12. 螢光標記 (Mark)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="code">💻 13. 程式碼文字 (Code)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="del">📌 14. 刪除線文字 (Del)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="ins">📌 15. 底線插入 (Ins)</div>
+                                </div>
+                                <!-- 2. 排版類 (15種) -->
+                                <div id="pcat-layout" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-box">📦 1. 顏色區塊容器 (Div)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="hr">➖ 2. 水平分隔線 (HR)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="center">📍 3. 置中對齊包裝</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="card-box">🎨 4. 卡片圓角框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="alert-box">⚠️ 5. 警告提示橫幅</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="success-box">✅ 6. 成功提示橫幅</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="shadow-box">💡 7. 陰影立體框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="border-box">🔲 8. 邊框樣式框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="gradient-box">🌈 9. 漸層色彩背景框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="badge-box">🔖 10. 標籤膠囊框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="glass-box">🔮 11. 玻璃毛玻璃框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="details-box">📂 12. 可收合詳細選單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="footer-box">📌 13. 頁尾版權列</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="header-box">📌 14. 頂部導覽橫幅</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="container-box">📦 15. 置中寬螢幕容器</div>
+                                </div>
+                                <!-- 3. 媒體類 (15種) -->
+                                <div id="pcat-media" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="img">🖼️ 1. 圖片網址 (Img)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="link">🔗 2. 超連結 (A)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="video">🎬 3. 影片嵌入 (Iframe)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="avatar-img">👤 4. 圓形大頭貼照</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="audio-player">🎵 5. 音訊播放器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="svg-icon">⭐ 6. SVG 星星圖示</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="map-embed">🗺️ 7. Google地圖嵌入</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="banner-img">🌆 8. 全寬橫幅背景圖</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="download-link">📥 9. 檔案下載連結</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="email-link">📧 10. 電子郵件寄信鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="tel-link">📞 11. 電話撥號連結</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="figure-caption">🏷️ 12. 圖片附說明文字</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="svg-heart">❤️ 13. SVG 愛心圖示</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="svg-check">✅ 14. SVG 打勾圖示</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="gallery-grid">📸 15. 圖片藝廊宮格</div>
+                                </div>
+                                <!-- 4. 表單類 (15種) -->
+                                <div id="pcat-form" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="button">🔘 1. 點擊按鈕 (Button)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="input">⌨️ 2. 文字輸入框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="password">🔒 3. 密碼輸入框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="checkbox">☑️ 4. 勾選方塊</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="radio">🔘 5. 單選圓鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="select">📂 6. 下拉選單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="textarea">📝 7. 多行文字輸入區</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="range">🎚️ 8. 數值拉桿滑塊</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="color-picker">🎨 9. 色彩挑選器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="date-picker">📅 10. 日期選擇器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="file-upload">📂 11. 檔案上傳按鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="number-input">🔢 12. 數字加減框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="search-input">🔍 13. 搜尋輸入框</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="submit-btn">🚀 14. 表單提交鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="reset-btn">🔄 15. 重設表單鈕</div>
+                                </div>
+                                <!-- 5. 清單類 (15種) -->
+                                <div id="pcat-list" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="ul">📌 1. 項目清單 (UL)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="ol">🔢 2. 編號清單 (OL)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="dl">📖 3. 定義清單 (DL)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="menu-list">🌐 4. 導覽選單列</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="checklist-box">☑️ 5. 待辦事項清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="steps-list">🪜 6. 步驟流程清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="tags-list">🏷️ 7. 標籤雲清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="faq-list">❓ 8. 常見問題Q&A清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="social-list">🔗 9. 社交平台連結清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="features-list">⭐ 10. 特色亮點清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="pricing-list">💰 11. 價格方案清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="team-list">👥 12. 團隊成員清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="timeline-list">⏳ 13. 時間軸事件清單</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="breadcrumb-list">📍 14. 麵包屑導覽路徑</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="pagination-list">📄 15. 頁碼翻頁清單</div>
+                                </div>
+                                <!-- 6. 互動類 (15種完整互動工具) -->
+                                <div id="pcat-fun" class="puzzle-cat-section">
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="alert">⚡ 1. 彈跳警報按鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="counter">🔢 2. 即時點擊計數器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="random-color">🎨 3. 隨機變換背景色鈕</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="live-clock">🕒 4. 即時數位時鐘</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="bmi-calc">⚖️ 5. 簡易 BMI 計算機</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="roll-dice">🎲 6. 隨機骰子生成器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="password-gen">🔑 7. 隨機密碼產生器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="rps-game">✊ 8. 猜拳互動小遊戲</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="greeting-box">👋 9. 早中晚問候語</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="dark-mode">🌙 10. 黑暗模式切換器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="stopwatch">⏱️ 11. 碼表計時器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="tip-calc">💵 12. 小費分帳計算器</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="quote-generator">💬 13. 每日勵志金句</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="coin-flip">🪙 14. 擲銅板正反面</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="todo-app">📝 15. 簡易待辦事項展示</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 中央工作區 -->
+                        <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
+                            <div id="puzzle-empty-msg" style="color:#cbd5e1; text-align:center; margin-top:120px; pointer-events:none;">👉 請從左側拖曳豐富積木到這裡組合您的網頁</div>
+                        </div>
+
+                        <!-- 右側即時預覽與原始碼 -->
+                        <div class="puzzle-right-panel">
+                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時畫面預覽</div>
+                            <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
+                            <div style="font-weight:bold; color:#64748b; font-size:12px;">💻 即時產生原始碼</div>
+                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -255,7 +434,7 @@
                     <button onclick="switchAdminTab('tab-review')">🔍 作品審查管理</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言</button>
                     <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
-                    <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具 (可修改分類)</button>
+                    <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具</button>
                 </div>
                 
                 <div id="tab-dashboard" class="admin-section active">
@@ -270,7 +449,6 @@
                     </div>
                 </div>
                 
-                <!-- 審查管理 Tab -->
                 <div id="tab-review" class="admin-section">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -314,20 +492,12 @@
                     </div>
                 </div>
 
-                <!-- 已發布工具管理 Tab (支援直接修改分類) -->
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3>已上架工具管理 (可直接修改身分、校別、年級)</h3>
+                        <h3>已上架工具管理</h3>
                         <div style="max-height:500px; overflow-y:auto;">
                             <table id="tool-manage-table">
-                                <thead>
-                                    <tr>
-                                        <th>作品名稱 / 作者</th>
-                                        <th>目前分類設定</th>
-                                        <th>修改分類</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>作品名稱 / 作者</th><th>目前分類</th><th>修改分類</th><th>操作</th></tr></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -406,6 +576,199 @@
         function toggleSubNav(groupId) {
             const group = document.getElementById(groupId);
             if(group) group.classList.toggle('active');
+        }
+
+        // --- 貼貼碼邏輯 ---
+        function switchPuzzleCat(cat) {
+            document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('pcat-'+cat).classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
+        }
+
+        function dragNew(ev) {
+            ev.dataTransfer.setData("type", ev.target.getAttribute('data-type'));
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+
+        function drop(ev) {
+            ev.preventDefault();
+            document.getElementById('puzzle-empty-msg').style.display = 'none';
+            let type = ev.dataTransfer.getData("type");
+            if(!type) return;
+
+            let item = document.createElement('div');
+            item.className = 'puzzle-item';
+            
+            let innerContent = "";
+
+            if(type.startsWith('h')) innerContent = `📄 標題文字 (${type.toUpperCase()}): <input type="text" class="text-input" value="請輸入標題文字" oninput="renderPuzzle()">`;
+            else if(type === 'p') innerContent = `📝 標準段落文字: <textarea class="text-input" style="height:40px;" oninput="renderPuzzle()">請在此輸入段落文字...</textarea>`;
+            else if(type === 'span') innerContent = `🏷️ 內聯文字: <input type="text" class="text-input" value="突顯文字" oninput="renderPuzzle()"> 顏色: <input type="color" value="#ef4444" onchange="renderPuzzle()">`;
+            else if(type === 'quote') innerContent = `💬 引用塊文字: <input type="text" class="text-input" value="學而時習之，不亦說乎" oninput="renderPuzzle()">`;
+            else if(['strong','em','mark','code','del','ins'].includes(type)) innerContent = `📌 裝飾文字 (${type.toUpperCase()}): <input type="text" class="text-input" value="特色樣式文字" oninput="renderPuzzle()">`;
+            
+            else if(type === 'div-box') innerContent = `📦 顏色區塊容器: <input type="text" class="text-input" value="區塊內部文字" oninput="renderPuzzle()"><br>背景顏色: <input type="color" value="#f1f5f9" onchange="renderPuzzle()">`;
+            else if(type === 'hr') innerContent = `➖ 水平分隔線 (HR)`;
+            else if(type === 'center') innerContent = `📍 置中包裝文字: <input type="text" class="text-input" value="這段文字會置中顯示" oninput="renderPuzzle()">`;
+            else if(['card-box','alert-box','success-box','shadow-box','border-box','gradient-box','badge-box','glass-box','details-box','footer-box','header-box','container-box'].includes(type)) innerContent = `🎨 排版框架 (${type}): <input type="text" class="text-input" value="框架內部標題與說明" oninput="renderPuzzle()">`;
+
+            else if(type === 'img') innerContent = `🖼️ 圖片網址 (URL): <input type="text" class="text-input" value="https://picsum.photos/300/150" oninput="renderPuzzle()">`;
+            else if(type === 'link') innerContent = `🔗 超連結網址: <input type="text" class="text-input" value="https://www.google.com" oninput="renderPuzzle()"><br>連結按鈕文字: <input type="text" class="text-input" value="點我前往網站" oninput="renderPuzzle()">`;
+            else if(type === 'video') innerContent = `🎬 嵌入影片網址: <input type="text" class="text-input" value="https://www.youtube.com/embed/dQw4w9WgXcQ" oninput="renderPuzzle()">`;
+            else if(['avatar-img','audio-player','svg-icon','map-embed','banner-img','download-link','email-link','tel-link','figure-caption','svg-heart','svg-check','gallery-grid'].includes(type)) innerContent = `🖼️ 多媒體積木 (${type}): <input type="text" class="text-input" value="網址或說明文字" oninput="renderPuzzle()">`;
+
+            else if(type === 'button') innerContent = `🔘 按鈕文字: <input type="text" class="text-input" value="按我一下" oninput="renderPuzzle()">`;
+            else if(type === 'input') innerContent = `⌨️ 輸入框提示字: <input type="text" class="text-input" value="請輸入您的名字..." oninput="renderPuzzle()">`;
+            else if(type === 'password') innerContent = `🔒 密碼框提示字: <input type="text" class="text-input" value="請輸入密碼..." oninput="renderPuzzle()">`;
+            else if(type === 'checkbox') innerContent = `☑️ 勾選方塊說明: <input type="text" class="text-input" value="我同意服務條款" oninput="renderPuzzle()">`;
+            else if(type === 'radio') innerContent = `🔘 單選圓鈕說明: <input type="text" class="text-input" value="選項一" oninput="renderPuzzle()">`;
+            else if(type === 'select') innerContent = `📂 下拉選項 (逗號分隔): <input type="text" class="text-input" value="選項A, 選項B, 選項C" oninput="renderPuzzle()">`;
+            else if(['textarea','range','color-picker','date-picker','file-upload','number-input','search-input','submit-btn','reset-btn'].includes(type)) innerContent = `📋 表單元件 (${type}): <input type="text" class="text-input" value="表單元件預設說明" oninput="renderPuzzle()">`;
+
+            else if(type === 'ul' || type === 'ol') innerContent = `📌 項目清單 (逗號分隔): <input type="text" class="text-input" value="蘋果, 香蕉, 橘子" oninput="renderPuzzle()">`;
+            else if(['dl','menu-list','checklist-box','steps-list','tags-list','faq-list','social-list','features-list','pricing-list','team-list','timeline-list','breadcrumb-list','pagination-list'].includes(type)) innerContent = `📌 清單導航 (${type}): <input type="text" class="text-input" value="項目一, 項目二, 項目三" oninput="renderPuzzle()">`;
+
+            // 互動小工具
+            else if(type === 'alert') innerContent = `⚡ 彈跳警報按鈕: <input type="text" class="text-input" value="點我彈出提示" oninput="renderPuzzle()"><br>彈出訊息: <input type="text" class="text-input" value="哈囉歡迎光臨！" oninput="renderPuzzle()">`;
+            else if(type === 'counter') innerContent = `🔢 即時點擊計數器按鈕文字: <input type="text" class="text-input" value="👍 點讚" oninput="renderPuzzle()">`;
+            else if(type === 'random-color') innerContent = `🎨 隨機變換背景色鈕: <input type="text" class="text-input" value="點我隨機換背景色" oninput="renderPuzzle()">`;
+            else if(type === 'live-clock') innerContent = `🕒 即時數位時鐘 (自動執行)`;
+            else if(type === 'bmi-calc') innerContent = `⚖️ 簡易 BMI 計算機 (身高/體重互動)`;
+            else if(type === 'roll-dice') innerContent = `🎲 隨機骰子生成器 (1-6 點)`;
+            else if(type === 'password-gen') innerContent = `🔑 隨機安全密碼產生器`;
+            else if(type === 'rps-game') innerContent = `✊ 猜拳小遊戲 (剪刀石頭布)`;
+            else if(['greeting-box','dark-mode','stopwatch','tip-calc','quote-generator','coin-flip','todo-app'].includes(type)) innerContent = `✨ 互動工具元件 (${type}): <input type="text" class="text-input" value="互動按鈕與說明文字" oninput="renderPuzzle()">`;
+
+            item.innerHTML = `<button class="puzzle-delete-btn" onclick="this.parentElement.remove(); renderPuzzle();">✕</button>` + innerContent;
+            document.getElementById('puzzle-root').appendChild(item);
+            renderPuzzle();
+        }
+
+        function renderPuzzle() {
+            let items = document.querySelectorAll('#puzzle-root .puzzle-item');
+            let fullHtml = "<div style='font-family:sans-serif; padding:20px; line-height:1.6;'>\n";
+
+            items.forEach(item => {
+                let inputs = item.querySelectorAll('input, textarea');
+                let t1 = inputs[0] ? inputs[0].value : "";
+                let t2 = inputs[1] ? inputs[1].value : "";
+
+                if(item.innerHTML.includes('標題文字 (H1)')) fullHtml += `    <h1>${t1}</h1>\n`;
+                else if(item.innerHTML.includes('標題文字 (H2)')) fullHtml += `    <h2>${t1}</h2>\n`;
+                else if(item.innerHTML.includes('標題文字 (H3)')) fullHtml += `    <h3>${t1}</h3>\n`;
+                else if(item.innerHTML.includes('標題文字 (H4)')) fullHtml += `    <h4>${t1}</h4>\n`;
+                else if(item.innerHTML.includes('標題文字 (H5)')) fullHtml += `    <h5>${t1}</h5>\n`;
+                else if(item.innerHTML.includes('標題文字 (H6)')) fullHtml += `    <h6>${t1}</h6>\n`;
+                else if(item.innerHTML.includes('標準段落文字')) fullHtml += `    <p>${t1}</p>\n`;
+                else if(item.innerHTML.includes('內聯文字')) fullHtml += `    <span style="color:${t2}; font-weight:bold;">${t1}</span>\n`;
+                else if(item.innerHTML.includes('引用塊文字')) fullHtml += `    <blockquote style="border-left:4px solid #3b82f6; padding-left:10px; color:#64748b; margin:10px 0;">${t1}</blockquote>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (STRONG)')) fullHtml += `    <strong>${t1}</strong>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (EM)')) fullHtml += `    <em>${t1}</em>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (MARK)')) fullHtml += `    <mark>${t1}</mark>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (CODE)')) fullHtml += `    <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-family:monospace;">${t1}</code>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (DEL)')) fullHtml += `    <del>${t1}</del>\n`;
+                else if(item.innerHTML.includes('裝飾文字 (INS)')) fullHtml += `    <ins>${t1}</ins>\n`;
+                
+                else if(item.innerHTML.includes('顏色區塊容器')) fullHtml += `    <div style="background:${t2}; padding:15px; border-radius:6px; margin:10px 0; border:1px solid #cbd5e1;">${t1}</div>\n`;
+                else if(item.innerHTML.includes('水平分隔線')) fullHtml += `    <hr style="margin:15px 0; border:0; border-top:1px solid #cbd5e1;">\n`;
+                else if(item.innerHTML.includes('置中包裝文字')) fullHtml += `    <div style="text-align:center; font-weight:bold; margin:10px 0;">${t1}</div>\n`;
+                else if(item.innerHTML.includes('警告提示橫幅')) fullHtml += `    <div style="background:#fee2e2; color:#b91c1c; padding:12px; border-radius:6px; margin:10px 0; border-left:4px solid #ef4444;">⚠️ ${t1}</div>\n`;
+                else if(item.innerHTML.includes('成功提示橫幅')) fullHtml += `    <div style="background:#d1fae5; color:#065f46; padding:12px; border-radius:6px; margin:10px 0; border-left:4px solid #10b981;">✅ ${t1}</div>\n`;
+                else if(item.innerHTML.includes('排版框架')) fullHtml += `    <div style="border:1px solid #cbd5e1; padding:15px; border-radius:8px; margin:10px 0; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><h3>${t1}</h3></div>\n`;
+
+                else if(item.innerHTML.includes('圖片網址')) fullHtml += `    <img src="${t1}" style="max-width:100%; border-radius:6px; margin:10px 0;" alt="圖片">\n`;
+                else if(item.innerHTML.includes('超連結網址')) fullHtml += `    <p><a href="${t1}" target="_blank" style="color:#3b82f6; font-weight:bold;">${t2}</a></p>\n`;
+                else if(item.innerHTML.includes('嵌入影片網址')) fullHtml += `    <div style="margin:10px 0;"><iframe width="100%" height="200" src="${t1}" frameborder="0" allowfullscreen></iframe></div>\n`;
+                else if(item.innerHTML.includes('圓形大頭貼網址')) fullHtml += `    <img src="${t1}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin:10px 0;" alt="大頭貼">\n`;
+                else if(item.innerHTML.includes('多媒體積木')) fullHtml += `    <div style="padding:10px; background:#f8fafc; border:1px dashed #cbd5e1; margin:10px 0; text-align:center;">🎬 多媒體展示: ${t1}</div>\n`;
+
+                else if(item.innerHTML.includes('按鈕文字')) fullHtml += `    <button style="padding:8px 16px; background:#3b82f6; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="alert('按鈕被點擊了！')">${t1}</button>\n`;
+                else if(item.innerHTML.includes('輸入框提示字')) fullHtml += `    <p><input type="text" placeholder="${t1}" style="padding:8px; border:1px solid #cbd5e1; border-radius:4px; width:100%; max-width:300px;"></p>\n`;
+                else if(item.innerHTML.includes('密碼框提示字')) fullHtml += `    <p><input type="password" placeholder="${t1}" style="padding:8px; border:1px solid #cbd5e1; border-radius:4px; width:100%; max-width:300px;"></p>\n`;
+                else if(item.innerHTML.includes('勾選方塊說明')) fullHtml += `    <p><label><input type="checkbox"> ${t1}</label></p>\n`;
+                else if(item.innerHTML.includes('單選圓鈕說明')) fullHtml += `    <p><label><input type="radio" name="r"> ${t1}</label></p>\n`;
+                else if(item.innerHTML.includes('下拉選項')) {
+                    let parts = t1.split(',');
+                    fullHtml += `    <p><select style="padding:8px; border-radius:4px;">\n`;
+                    parts.forEach(p => fullHtml += `        <option>${p.trim()}</option>\n`);
+                    fullHtml += `    </select></p>\n`;
+                }
+                else if(item.innerHTML.includes('表單元件')) fullHtml += `    <p style="padding:8px; background:#f1f5f9; border-radius:4px;">📋 ${t1}</p>\n`;
+
+                else if(item.innerHTML.includes('項目清單 (UL)') || item.innerHTML.includes('編號清單 (OL)')) {
+                    let tag = item.innerHTML.includes('項目清單 (UL)') ? 'ul' : 'ol';
+                    let parts = t1.split(',');
+                    fullHtml += `    <${tag}>\n`;
+                    parts.forEach(p => fullHtml += `        <li>${p.trim()}</li>\n`);
+                    fullHtml += `    </${tag}>\n`;
+                }
+                else if(item.innerHTML.includes('清單導航')) {
+                    let parts = t1.split(',');
+                    fullHtml += `    <ul style="list-style:none; padding:0; display:flex; gap:10px; flex-wrap:wrap;">\n`;
+                    parts.forEach(p => fullHtml += `        <li style="background:#e2e8f0; padding:6px 12px; border-radius:4px;">${p.trim()}</li>\n`);
+                    fullHtml += `    </ul>\n`;
+                }
+
+                // 互動小工具
+                else if(item.innerHTML.includes('彈跳警報按鈕')) {
+                    fullHtml += `    <button style="padding:8px 16px; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="alert('${t2}')">${t1}</button>\n`;
+                }
+                else if(item.innerHTML.includes('即時點擊計數器')) {
+                    fullHtml += `    <button style="padding:8px 16px; background:#f59e0b; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="let c=this.querySelector('span'); c.innerText=parseInt(c.innerText)+1;">${t1} (<span>0</span>)</button>\n`;
+                }
+                else if(item.innerHTML.includes('隨機變換背景色鈕')) {
+                    fullHtml += `    <button style="padding:8px 16px; background:#8b5cf6; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="document.body.style.backgroundColor='#'+Math.floor(Math.random()*16777215).toString(16);">${t1}</button>\n`;
+                }
+                else if(item.innerHTML.includes('即時數位時鐘')) {
+                    fullHtml += `    <div style="font-family:monospace; font-size:16px; font-weight:bold; color:#3b82f6; padding:10px; background:#e0f2fe; border-radius:6px; display:inline-block;" id="live-clock">載入中...</div>\n`;
+                    fullHtml += `    <script>setInterval(()=>{document.getElementById('live-clock').innerText = '🕒 ' + new Date().toLocaleTimeString();}, 1000);<\/script>\n`;
+                }
+                else if(item.innerHTML.includes('簡易 BMI 計算機')) {
+                    fullHtml += `    <div style="background:#f1f5f9; padding:15px; border-radius:8px; max-width:320px; border:1px solid #cbd5e1;">\n`;
+                    fullHtml += `        <h4>⚖️ BMI 計算機</h4>\n`;
+                    fullHtml += `        <input type="number" id="bmi-h" placeholder="身高 (公分，例: 170)" style="width:100%; padding:6px; margin:5px 0; border:1px solid #ccc; border-radius:4px;"><br>\n`;
+                    fullHtml += `        <input type="number" id="bmi-w" placeholder="體重 (公斤，例: 65)" style="width:100%; padding:6px; margin:5px 0; border:1px solid #ccc; border-radius:4px;"><br>\n`;
+                    fullHtml += `        <button style="padding:6px 12px; background:#3b82f6; color:white; border:none; border-radius:4px; cursor:pointer; margin-top:5px;" onclick="let h=parseFloat(document.getElementById('bmi-h').value)/100, w=parseFloat(document.getElementById('bmi-w').value); let res=w/(h*h); document.getElementById('bmi-res').innerText = isNaN(res)?'請輸入正確數字':'您的 BMI 是: '+res.toFixed(1);">計算 BMI</button>\n`;
+                    fullHtml += `        <p id="bmi-res" style="margin-top:8px; font-weight:bold; color:#334155;"></p>\n`;
+                    fullHtml += `    </div>\n`;
+                }
+                else if(item.innerHTML.includes('隨機骰子生成器')) {
+                    fullHtml += `    <div style="background:#f8fafc; padding:15px; border-radius:8px; max-width:250px; border:1px solid #cbd5e1; text-align:center;">\n`;
+                    fullHtml += `        <div id="dice-box" style="font-size:40px; margin-bottom:5px;">🎲</div>\n`;
+                    fullHtml += `        <button style="padding:6px 12px; background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="let r=Math.floor(Math.random()*6)+1; document.getElementById('dice-box').innerText='🎲 '+r+' 點';">擲骰子</button>\n`;
+                    fullHtml += `    </div>\n`;
+                }
+                else if(item.innerHTML.includes('隨機安全密碼產生器')) {
+                    fullHtml += `    <div style="background:#f8fafc; padding:15px; border-radius:8px; max-width:320px; border:1px solid #cbd5e1;">\n`;
+                    fullHtml += `        <h4>🔑 密碼產生器</h4>\n`;
+                    fullHtml += `        <input type="text" id="pwd-out" readonly style="width:100%; padding:6px; margin:5px 0; border:1px solid #ccc; border-radius:4px; font-family:monospace;" value="點擊下方按鈕">\n`;
+                    fullHtml += `        <button style="padding:6px 12px; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="let chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!'; let p=''; for(let i=0;i<10;i++) p+=chars.charAt(Math.floor(Math.random()*chars.length)); document.getElementById('pwd-out').value=p;">生成密碼</button>\n`;
+                    fullHtml += `    </div>\n`;
+                }
+                else if(item.innerHTML.includes('猜拳小遊戲')) {
+                    fullHtml += `    <div style="background:#f1f5f9; padding:15px; border-radius:8px; max-width:300px; border:1px solid #cbd5e1; text-align:center;">\n`;
+                    fullHtml += `        <h4>✊ 剪刀石頭布</h4>\n`;
+                    fullHtml += `        <button style="padding:6px 10px; margin:4px; cursor:pointer;" onclick="playRps('剪刀')">✂️ 剪刀</button>\n`;
+                    fullHtml += `        <button style="padding:6px 10px; margin:4px; cursor:pointer;" onclick="playRps('石頭')">✊ 石頭</button>\n`;
+                    fullHtml += `        <button style="padding:6px 10px; margin:4px; cursor:pointer;" onclick="playRps('布')">🖐️ 布</button>\n`;
+                    fullHtml += `        <p id="rps-res" style="margin-top:8px; font-weight:bold;"></p>\n`;
+                    fullHtml += `    </div>\n`;
+                    fullHtml += `    <script>function playRps(user){let arr=['剪刀','石頭','布']; let comp=arr[Math.floor(Math.random()*3)]; let res=''; if(user===comp) res='平手！'; else if((user==='剪刀'&&comp==='布')||(user==='石頭'&&comp==='剪刀')||(user==='布'&&comp==='石頭')) res='你贏了！🎉'; else res='電腦贏了！😢'; document.getElementById('rps-res').innerText='你出: '+user+' | 電腦出: '+comp+' -> '+res;}<\/script>\n`;
+                }
+                else if(item.innerHTML.includes('互動工具元件')) {
+                    fullHtml += `    <div style="padding:12px; background:#e0f2fe; border-left:4px solid #0284c7; margin:10px 0; border-radius:4px;">✨ 互動工具：${t1}</div>\n`;
+                }
+            });
+
+            fullHtml += "</div>";
+
+            document.getElementById('puzzle-source-display').value = fullHtml;
+            let iframeDoc = document.getElementById('puzzle-result').contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(fullHtml);
+            iframeDoc.close();
         }
     </script>
 
@@ -496,7 +859,6 @@
             } catch(err) { alert("提交失敗：" + err.message); }
         };
 
-        // 審查清單
         onSnapshot(query(collection(db, "pending_tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const tbody = document.querySelector('#review-table tbody');
             if(!tbody) return;
@@ -571,7 +933,6 @@
             alert("批量上架完成！");
         };
 
-        // 已發布工具與前端選單動態生成（支援後台直接修改分類）
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
@@ -587,7 +948,6 @@
                 let data = docSnap.data();
                 let id = docSnap.id;
                 
-                // 預設防呆補齊屬性
                 let role = data.role || "student";
                 let schoolType = data.schoolType || "中學";
                 let grade = data.grade || "1";
@@ -600,16 +960,11 @@
                     primarySchoolTools.push({ id, ...data });
                 }
 
-                // 後台已上架表格（帶有即時修改分類選單）
                 if(adminToolsTable) {
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">作者：${escapeHtml(data.author)}</small></td>
-                        <td>
-                            <span style="font-size:12px; color:#475569;">
-                                ${role === 'teacher' ? '👨‍🏫 老師' : `📚 學生 [${schoolType} /${grade}年級]`}
-                            </span>
-                        </td>
+                        <td><span style="font-size:12px; color:#475569;">${role === 'teacher' ? '👨‍🏫 老師' : `📚 學生 [${schoolType} /${grade}年級]`}</span></td>
                         <td>
                             <select id="role-edit-${id}" class="select-input" style="padding:4px; font-size:12px; margin-bottom:4px;" onchange="updateToolCategory('${id}')">
                                 <option value="student" ${role==='student'?'selected':''}>學生</option>
@@ -620,12 +975,8 @@
                                 <option value="小學" ${schoolType==='小學'?'selected':''}>小學</option>
                             </select>
                             <select id="grade-edit-${id}" class="select-input" style="padding:4px; font-size:12px; margin-bottom:0; ${role==='teacher'?'display:none;':''}" onchange="updateToolCategory('${id}')">
-                                <option value="1" ${grade==='1'?'selected':''}>1年級</option>
-                                <option value="2" ${grade==='2'?'selected':''}>2年級</option>
-                                <option value="3" ${grade==='3'?'selected':''}>3年級</option>
-                                <option value="4" ${grade==='4'?'selected':''}>4年級</option>
-                                <option value="5" ${grade==='5'?'selected':''}>5年級</option>
-                                <option value="6" ${grade==='6'?'selected':''}>6年級</option>
+                                <option value="1" ${grade==='1'?'selected':''}>1年級</option><option value="2" ${grade==='2'?'selected':''}>2年級</option><option value="3" ${grade==='3'?'selected':''}>3年級</option>
+                                <option value="4" ${grade==='4'?'selected':''}>4年級</option><option value="5" ${grade==='5'?'selected':''}>5年級</option><option value="6" ${grade==='6'?'selected':''}>6年級</option>
                             </select>
                         </td>
                         <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>
@@ -633,7 +984,6 @@
                     adminToolsTable.appendChild(tr);
                 }
 
-                // 產生頁面 iframe
                 let pageDiv = document.getElementById('page-' + id);
                 if(!pageDiv) {
                     pageDiv = document.createElement('div');
@@ -644,58 +994,35 @@
                 }
             });
 
-            // 前台選單組合
             let teacherGroupHtml = '';
-            teacherTools.forEach(t => {
-                teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></button>`;
-            });
+            teacherTools.forEach(t => { teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></button>`; });
 
             let middleGroupHtml = '';
-            middleSchoolTools.forEach(t => {
-                middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
-            });
+            middleSchoolTools.forEach(t => { middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`; });
 
             let primaryGroupHtml = '';
-            primarySchoolTools.forEach(t => {
-                primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
-            });
+            primarySchoolTools.forEach(t => { primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`; });
 
             container.innerHTML = `
                 <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.length})</button>
-                <div id="sub-teacher" class="sub-nav-group">
-                    ${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}
-                </div>
+                <div id="sub-teacher" class="sub-nav-group">${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}</div>
 
                 <button class="nav-btn" onclick="toggleSubNav('sub-student')">📚 學生工具 (${middleSchoolTools.length + primarySchoolTools.length})</button>
                 <div id="sub-student" class="sub-nav-group">
                     <button class="nav-sub-btn" onclick="toggleSubNav('sub-middle')" style="font-weight:bold; color:#38bdf8;">🏫 中學 (${middleSchoolTools.length})</button>
-                    <div id="sub-middle" class="sub-nav-group">
-                        ${middleGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無中學作品</div>'}
-                    </div>
+                    <div id="sub-middle" class="sub-nav-group">${middleGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無中學作品</div>'}</div>
 
                     <button class="nav-sub-btn" onclick="toggleSubNav('sub-primary')" style="font-weight:bold; color:#38bdf8; margin-top:5px;">🏫 小學 (${primarySchoolTools.length})</button>
-                    <div id="sub-primary" class="sub-nav-group">
-                        ${primaryGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無小學作品</div>'}
-                    </div>
+                    <div id="sub-primary" class="sub-nav-group">${primaryGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無小學作品</div>'}</div>
                 </div>
             `;
         });
 
-        // 雲端即時更新作品分類
         window.updateToolCategory = async function(id) {
             let role = document.getElementById(`role-edit-${id}`).value;
             let schoolType = document.getElementById(`school-edit-${id}`).value;
             let grade = document.getElementById(`grade-edit-${id}`).value;
-
-            try {
-                await updateDoc(doc(db, "tools", id), {
-                    role: role,
-                    schoolType: schoolType,
-                    grade: grade
-                });
-            } catch(e) {
-                console.error("更新分類失敗", e);
-            }
+            try { await updateDoc(doc(db, "tools", id), { role, schoolType, grade }); } catch(e) { console.error(e); }
         };
 
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
