@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>李老師工具站 | Miss Klio Tools</title>
+    <title>李老師工具站 | Miss Klio Tools (完整雲端審查版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -106,8 +106,8 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>李老師工具站</h2>
-            <p>歡迎使用</p>
-            <input type="text" id="username" placeholder="您的姓名">
+            <p>歡迎使用 (雲端審查版)</p>
+            <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
         </div>
     </div>
@@ -145,7 +145,6 @@
 
     <div id="main-app">
         <div class="sidebar">
-            <!-- 漢堡折疊式 HOME 標題 -->
             <div class="sidebar-header" onclick="toggleSidebarSection()">
                 <span>🛠️ HOME 導引區塊</span>
                 <span class="hamburger-icon">☰</span>
@@ -165,8 +164,6 @@
                 
                 <div style="margin:15px 0; border-top:1px solid #334155;"></div>
                 <div class="nav-category">來自所有人的系統創作</div>
-                
-                <!-- 前台分類選單容器 -->
                 <div id="dynamic-nav-container"></div>
             </div>
 
@@ -258,7 +255,7 @@
                     <button onclick="switchAdminTab('tab-review')">🔍 作品審查管理</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言</button>
                     <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
-                    <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具</button>
+                    <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具 (可修改分類)</button>
                 </div>
                 
                 <div id="tab-dashboard" class="admin-section active">
@@ -285,11 +282,11 @@
                                 <thead>
                                     <tr>
                                         <th><input type="checkbox" id="select-all-checkbox" onclick="toggleSelectAll(this)"> 全選</th>
-                                        <th>分類 (老師 / 學生)</th>
-                                        <th>作者 / 學號</th>
+                                        <th>分類</th>
+                                        <th>作者</th>
                                         <th>詳細資訊</th>
-                                        <th>HTML名稱 & 意念</th>
-                                        <th>內容檢視</th>
+                                        <th>HTML名稱</th>
+                                        <th>預覽</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -317,13 +314,23 @@
                     </div>
                 </div>
 
+                <!-- 已發布工具管理 Tab (支援直接修改分類) -->
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3>已上架工具管理</h3>
-                        <table id="tool-manage-table">
-                            <thead><tr><th>工具名稱</th><th>作者 / 學校 / 年級</th><th>操作</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+                        <h3>已上架工具管理 (可直接修改身分、校別、年級)</h3>
+                        <div style="max-height:500px; overflow-y:auto;">
+                            <table id="tool-manage-table">
+                                <thead>
+                                    <tr>
+                                        <th>作品名稱 / 作者</th>
+                                        <th>目前分類設定</th>
+                                        <th>修改分類</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -385,9 +392,7 @@
             switchPreviewMode('render');
             document.getElementById('preview-modal').style.display = 'flex';
         }
-        function closePreviewModal() {
-            document.getElementById('preview-modal').style.display = 'none';
-        }
+        function closePreviewModal() { document.getElementById('preview-modal').style.display = 'none'; }
         function switchPreviewMode(mode) {
             if(mode === 'render') {
                 document.getElementById('modal-iframe').style.display = 'block';
@@ -398,12 +403,9 @@
             }
         }
 
-        // 前台巢狀選單切換控制
         function toggleSubNav(groupId) {
             const group = document.getElementById(groupId);
-            if(group) {
-                group.classList.toggle('active');
-            }
+            if(group) group.classList.toggle('active');
         }
     </script>
 
@@ -439,9 +441,7 @@
                 await signInWithEmailAndPassword(auth, "leiwengsi@fatima.edu.mo", passwordInput);
                 closeAdminAuth(); 
                 showPage('admin');
-            } catch(error) {
-                alert("驗證失敗：" + error.message);
-            }
+            } catch(error) { alert("驗證失敗：" + error.message); }
         };
 
         const statsRef = doc(db, "stats", "main");
@@ -496,7 +496,7 @@
             } catch(err) { alert("提交失敗：" + err.message); }
         };
 
-        // 審查清單即時同步
+        // 審查清單
         onSnapshot(query(collection(db, "pending_tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const tbody = document.querySelector('#review-table tbody');
             if(!tbody) return;
@@ -508,17 +508,15 @@
             docs.forEach((data) => {
                 let id = data.id;
                 let categoryLabel = data.role === 'teacher' ? '<span style="color:#3b82f6; font-weight:bold;">👨‍🏫 老師</span>' : `<span style="color:#10b981; font-weight:bold;">📚 學生 (${data.schoolType}/${data.grade}年級)</span>`;
-                let info = data.role === 'student' ? `${data.schoolType} | ${data.grade}年級${data.className}班 | 學號: ${data.studentId}` : `老師專屬`;
+                let info = data.role === 'student' ? `${data.schoolType} | ${data.grade}年級${data.className}班` : `老師專屬`;
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="review-checkbox" value="${id}"></td>
                     <td>${categoryLabel}</td>
                     <td><b>${escapeHtml(data.author)}</b></td>
                     <td>${escapeHtml(info)}</td>
-                    <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">${escapeHtml(data.desc)}</small></td>
-                    <td>
-                        <button class="btn-primary preview-btn" data-id="${id}">🔍 預覽</button>
-                    </td>
+                    <td><b>${escapeHtml(data.name)}</b></td>
+                    <td><button class="btn-primary preview-btn" data-id="${id}">🔍 預覽</button></td>
                     <td>
                         <button class="btn-success approve-btn" data-id="${id}">通過</button>
                         <button class="btn-danger delete-btn" data-id="${id}">刪除</button>
@@ -532,12 +530,10 @@
                 let item = docs.find(d => d.id === id);
                 if(item) btn.onclick = () => openPreviewModal(item.name, item.code);
             });
-
             document.querySelectorAll('.approve-btn').forEach(btn => {
                 let id = btn.getAttribute('data-id');
                 btn.onclick = () => approveTool(id);
             });
-
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 let id = btn.getAttribute('data-id');
                 btn.onclick = () => delDoc('pending_tools', id);
@@ -550,10 +546,10 @@
             if(snap.exists()) {
                 let data = snap.data();
                 await addDoc(collection(db, "tools"), {
-                    role: data.role,
-                    schoolType: data.schoolType || "老師",
-                    grade: data.grade || "",
-                    author: data.author,
+                    role: data.role || "student",
+                    schoolType: data.schoolType || "中學",
+                    grade: data.grade || "1",
+                    author: data.author || "未知",
                     name: data.name,
                     code: data.code,
                     timestamp: serverTimestamp()
@@ -571,13 +567,11 @@
             if(checkboxes.length === 0) return alert("請勾選要批量審查的作品！");
             if(!confirm(`確定要批量上架這 ${checkboxes.length} 項作品嗎？`)) return;
 
-            for(let cb of checkboxes) {
-                await window.approveTool(cb.value);
-            }
+            for(let cb of checkboxes) { await window.approveTool(cb.value); }
             alert("批量上架完成！");
         };
 
-        // 前台動態多級選單生成（老師 / 學生 -> 中學/小學 -> 作品）
+        // 已發布工具與前端選單動態生成（支援後台直接修改分類）
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
@@ -593,23 +587,53 @@
                 let data = docSnap.data();
                 let id = docSnap.id;
                 
-                if (data.role === 'teacher') {
+                // 預設防呆補齊屬性
+                let role = data.role || "student";
+                let schoolType = data.schoolType || "中學";
+                let grade = data.grade || "1";
+
+                if (role === 'teacher') {
                     teacherTools.push({ id, ...data });
-                } else if (data.schoolType === '中學') {
+                } else if (schoolType === '中學') {
                     middleSchoolTools.push({ id, ...data });
                 } else {
                     primarySchoolTools.push({ id, ...data });
                 }
 
-                // 後台已上架管理表
+                // 後台已上架表格（帶有即時修改分類選單）
                 if(adminToolsTable) {
-                    let authorDisplay = data.role === 'teacher' ? `${data.author} (老師)` : `${data.author} (${data.schoolType} ${data.grade}年級)`;
                     let tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(authorDisplay)}</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>`;
+                    tr.innerHTML = `
+                        <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">作者：${escapeHtml(data.author)}</small></td>
+                        <td>
+                            <span style="font-size:12px; color:#475569;">
+                                ${role === 'teacher' ? '👨‍🏫 老師' : `📚 學生 [${schoolType} /${grade}年級]`}
+                            </span>
+                        </td>
+                        <td>
+                            <select id="role-edit-${id}" class="select-input" style="padding:4px; font-size:12px; margin-bottom:4px;" onchange="updateToolCategory('${id}')">
+                                <option value="student" ${role==='student'?'selected':''}>學生</option>
+                                <option value="teacher" ${role==='teacher'?'selected':''}>老師</option>
+                            </select>
+                            <select id="school-edit-${id}" class="select-input" style="padding:4px; font-size:12px; margin-bottom:0; ${role==='teacher'?'display:none;':''}" onchange="updateToolCategory('${id}')">
+                                <option value="中學" ${schoolType==='中學'?'selected':''}>中學</option>
+                                <option value="小學" ${schoolType==='小學'?'selected':''}>小學</option>
+                            </select>
+                            <select id="grade-edit-${id}" class="select-input" style="padding:4px; font-size:12px; margin-bottom:0; ${role==='teacher'?'display:none;':''}" onchange="updateToolCategory('${id}')">
+                                <option value="1" ${grade==='1'?'selected':''}>1年級</option>
+                                <option value="2" ${grade==='2'?'selected':''}>2年級</option>
+                                <option value="3" ${grade==='3'?'selected':''}>3年級</option>
+                                <option value="4" ${grade==='4'?'selected':''}>4年級</option>
+                                <option value="5" ${grade==='5'?'selected':''}>5年級</option>
+                                <option value="6" ${grade==='6'?'selected':''}>6年級</option>
+                            </select>
+                        </td>
+                        <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>
+                    `;
                     adminToolsTable.appendChild(tr);
                 }
 
-                // 產生頁面內容 iframe
+                // 產生頁面 iframe
                 let pageDiv = document.getElementById('page-' + id);
                 if(!pageDiv) {
                     pageDiv = document.createElement('div');
@@ -620,42 +644,35 @@
                 }
             });
 
-            // 建立前台第一級：老師工具
+            // 前台選單組合
             let teacherGroupHtml = '';
             teacherTools.forEach(t => {
                 teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></button>`;
             });
 
-            // 建立前台學生第二級：中學
             let middleGroupHtml = '';
             middleSchoolTools.forEach(t => {
                 middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
             });
 
-            // 建立前台學生第二級：小學
             let primaryGroupHtml = '';
             primarySchoolTools.forEach(t => {
                 primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
             });
 
-            // 組合完整的階層式選單 HTML
             container.innerHTML = `
-                <!-- 第一級：老師工具 -->
                 <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.length})</button>
                 <div id="sub-teacher" class="sub-nav-group">
                     ${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}
                 </div>
 
-                <!-- 第一級：學生工具 -->
                 <button class="nav-btn" onclick="toggleSubNav('sub-student')">📚 學生工具 (${middleSchoolTools.length + primarySchoolTools.length})</button>
                 <div id="sub-student" class="sub-nav-group">
-                    <!-- 第二級：中學 -->
                     <button class="nav-sub-btn" onclick="toggleSubNav('sub-middle')" style="font-weight:bold; color:#38bdf8;">🏫 中學 (${middleSchoolTools.length})</button>
                     <div id="sub-middle" class="sub-nav-group">
                         ${middleGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無中學作品</div>'}
                     </div>
 
-                    <!-- 第二級：小學 -->
                     <button class="nav-sub-btn" onclick="toggleSubNav('sub-primary')" style="font-weight:bold; color:#38bdf8; margin-top:5px;">🏫 小學 (${primarySchoolTools.length})</button>
                     <div id="sub-primary" class="sub-nav-group">
                         ${primaryGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無小學作品</div>'}
@@ -663,6 +680,23 @@
                 </div>
             `;
         });
+
+        // 雲端即時更新作品分類
+        window.updateToolCategory = async function(id) {
+            let role = document.getElementById(`role-edit-${id}`).value;
+            let schoolType = document.getElementById(`school-edit-${id}`).value;
+            let grade = document.getElementById(`grade-edit-${id}`).value;
+
+            try {
+                await updateDoc(doc(db, "tools", id), {
+                    role: role,
+                    schoolType: schoolType,
+                    grade: grade
+                });
+            } catch(e) {
+                console.error("更新分類失敗", e);
+            }
+        };
 
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
