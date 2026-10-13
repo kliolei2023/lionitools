@@ -146,7 +146,6 @@
         .admin-section { display: none; }
         .admin-section.active { display: block; animation: fadeIn 0.2s; }
         
-        /* 修正作品顯示區，避免被頂部 Header 遮擋 */
         #dynamic-pages { position: absolute; top: 64px; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 20; }
         .page-full { display: none; pointer-events: auto; background: white; width: 100%; height: 100%; position: relative; }
         .page-full.active { display: block; }
@@ -190,6 +189,20 @@
             transition: var(--transition);
         }
         .puzzle-delete-btn:hover { background: var(--danger); color: white; }
+
+        /* Mac 風格三色控制鈕樣式 */
+        .mac-window-controls {
+            position: absolute; top: 14px; right: 20px; display: flex; gap: 8px; z-index: 1000; align-items: center;
+        }
+        .mac-btn {
+            width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; 
+            display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold;
+            transition: var(--transition); opacity: 0.85;
+        }
+        .mac-btn:hover { opacity: 1; transform: scale(1.1); }
+        .mac-close { background-color: #ff5f56; border: 1px solid #e0443e; color: #4d0000; }
+        .mac-minimize { background-color: #ffbd2e; border: 1px solid #dea123; color: #4a3300; }
+        .mac-maximize { background-color: #27c93f; border: 1px solid #1aab29; color: #003300; }
 
         @media (max-width: 1024px) {
             .sidebar { position: fixed; left: -270px; height: 100%; top: 0; box-shadow: 20px 0 30px rgba(0,0,0,0.2); }
@@ -257,7 +270,7 @@
             <div class="sidebar-content" id="sidebar-content-area">
                 <div class="nav-category">原有系統</div>
                 <button class="nav-btn" onclick="showPage('translator')">🌐 代碼即打即有</button>
-                <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼 </button>
+                <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼 (HTML)</button>
                 <button class="nav-btn" onclick="showPage('add-tool')">➕ 上傳您製作的系統</button>
 
                 <div class="nav-category">一般</div>
@@ -339,13 +352,11 @@
                 </div>
             </div>
 
-            <!-- 淨化後的「新學貼貼碼」學習區 -->
             <div id="code-puzzle" class="page-padded">
-                <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">🧩 新學貼貼碼 (學習區)</h1>
+                <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">🧩 新學貼貼碼 (精選實用 HTML 學習區)</h1>
                 <p style="color:#64748b; margin-bottom:16px; font-size:13px;">左側精選實用積木，拖曳即可自由組合，右側即時同步呈現效果與乾淨的原始碼！</p>
                 <div class="card" style="height: 680px; padding: 20px;">
                     <div class="puzzle-layout">
-                        <!-- 左側積木庫 -->
                         <div class="puzzle-sidebar">
                             <div class="puzzle-cat-tabs">
                                 <button class="puzzle-cat-btn active" onclick="switchPuzzleCat('text')">📝 文字</button>
@@ -399,12 +410,10 @@
                             </div>
                         </div>
 
-                        <!-- 中央工作區 -->
                         <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
                             <div id="puzzle-empty-msg" style="color:#94a3b8; text-align:center; margin-top:140px; pointer-events:none;">👉 請從左側拖曳精選積木到這裡組合您的網頁</div>
                         </div>
 
-                        <!-- 右側即時預覽與原始碼 -->
                         <div class="puzzle-right-panel">
                             <div style="font-weight:600; color:#475569; font-size:12px;">👀 即時畫面預覽</div>
                             <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
@@ -415,7 +424,6 @@
                 </div>
             </div>
 
-            <!-- 上傳系統 -->
             <div id="add-tool" class="page-padded">
                 <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">上傳系統創作</h1>
                 <p style="font-size:13px; color:var(--danger); margin-bottom:16px;">注意：所有提交均需經後台審查核准後才會公開上傳給所有人！</p>
@@ -454,14 +462,13 @@
                         <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #cbd5e1; padding:20px; text-align:center; cursor:pointer; margin-bottom:12px; border-radius:8px; background:#f8fafc; transition:var(--transition);">📂 點此上傳 HTML 檔案</div>
                         <input type="file" id="file-uploader" hidden onchange="processFile(this)">
                         <input type="text" id="new-tool-name" class="text-input" placeholder="HTML 名稱 (作品標題)">
-                        <textarea id="new-tool-desc" class="text-input" style="height:80px;" placeholder="設計意念 (可不填)"></textarea>
+                        <textarea id="new-tool-desc" class="text-input" style="height:80px;" placeholder="設計意念 (請填寫設計意念，方便黃綠燈按鈕顯示)"></textarea>
                         <textarea id="new-tool-code" class="text-input" style="height:120px; font-family:monospace;" placeholder="HTML 原始碼"></textarea>
                         <button class="btn-primary" onclick="userAddNewTool()">提交審查</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 後台管理區 -->
             <div id="admin" class="page-padded">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h1 style="font-weight:700; font-size:24px;">後台管理系統</h1>
@@ -530,10 +537,9 @@
                     </div>
                 </div>
 
-                <!-- 已發布工具管理（含查看原始碼功能） -->
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3 style="margin-bottom:16px; font-weight:600;">已上架工具管理 (可直接查看原始碼)</h3>
+                        <h3 style="margin-bottom:16px; font-weight:600;">已上架工具管理</h3>
                         <div style="max-height:500px; overflow-y:auto;">
                             <table id="tool-manage-table">
                                 <thead><tr><th>作品名稱 / 作者</th><th>目前分類</th><th>修改分類</th><th>操作</th></tr></thead>
@@ -643,7 +649,7 @@
             else if('簡介'.includes(kw)) showPage('home');
         }
 
-        // --- 淨化後的貼貼碼邏輯 ---
+        // --- 貼貼碼邏輯 ---
         function switchPuzzleCat(cat) {
             document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
@@ -907,7 +913,7 @@
             document.querySelectorAll('.preview-btn').forEach(btn => {
                 let id = btn.getAttribute('data-id');
                 let item = docs.find(d => d.id === id);
-                if(item) btn.onclick = () => openPreviewModal(item.name, item.code);
+                if(item) btn.onclick = () => openPreviewModal(item.name, item.code, item.author, item.grade, item.schoolType, item.desc, item.role);
             });
             document.querySelectorAll('.approve-btn').forEach(btn => {
                 let id = btn.getAttribute('data-id');
@@ -928,9 +934,11 @@
                     role: data.role || "student",
                     schoolType: data.schoolType || "中學",
                     grade: data.grade || "1",
+                    className: data.className || "",
                     author: data.author || "未知",
                     name: data.name,
                     code: data.code,
+                    desc: data.desc || "無設計意念",
                     timestamp: serverTimestamp()
                 });
                 await deleteDoc(docRef);
@@ -950,7 +958,7 @@
             alert("批量上架完成！");
         };
 
-        window.loadedToolsCode = {};
+        window.loadedToolsData = {};
 
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
@@ -968,7 +976,7 @@
             snapshot.forEach((docSnap) => {
                 let data = docSnap.data();
                 let id = docSnap.id;
-                window.loadedToolsCode[id] = data.code;
+                window.loadedToolsData[id] = data;
                 
                 let role = data.role || "student";
                 let schoolType = data.schoolType || "中學";
@@ -998,7 +1006,7 @@
                             </select>
                         </td>
                         <td>
-                            <button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(data.name)}', window.loadedToolsCode['${id}'])" style="margin-bottom:4px;">查看原始碼</button><br>
+                            <button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(data.name)}', window.loadedToolsData['${id}'].code, window.loadedToolsData['${id}'].author, window.loadedToolsData['${id}'].grade, window.loadedToolsData['${id}'].schoolType, window.loadedToolsData['${id}'].desc, window.loadedToolsData['${id}'].role)" style="margin-bottom:4px;">查看原始碼</button><br>
                             <button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button>
                         </td>
                     `;
@@ -1010,7 +1018,16 @@
                     pageDiv = document.createElement('div');
                     pageDiv.id = 'page-' + id;
                     pageDiv.className = 'page-full';
-                    pageDiv.innerHTML = `<iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999; padding:6px 12px; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer;">關閉預覽</button>`;
+                    
+                    // 在已打開作品頁面的右上角加入 Mac 風格三色控制鈕
+                    pageDiv.innerHTML = `
+                        <div class="mac-window-controls">
+                            <button class="mac-btn mac-close" title="關閉預覽" onclick="document.getElementById('page-${id}').classList.remove('active')"></button>
+                            <button class="mac-btn mac-minimize" title="顯示作者與年級" onclick="alert('作者：${escapeHtml(data.author)}\\n身分：${data.role==='teacher'?'老師':(data.schoolType+' / '+data.grade+'年級')}');"></button>
+                            <button class="mac-btn mac-maximize" title="顯示作品意念" onclick="alert('作品意念：\\n${escapeHtml(data.desc || '無設計意念')}');"></button>
+                        </div>
+                        <iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
+                    `;
                     pagesContainer.appendChild(pageDiv);
                 }
             });
