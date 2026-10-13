@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (完整雲端審查版)</title>
+    <title>李老師工具站 | Miss Klio Tools</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -48,14 +48,15 @@
         /* --- 佈局 --- */
         #main-app { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; }
+        
+        /* 漢堡折疊式 HOME 標題 */
         .sidebar-header { 
-            padding: 20px; color: #fff; font-weight: 700; font-size: 18px; 
+            padding: 20px; color: #fff; font-weight: 700; font-size: 16px; 
             display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-            background: rgba(255,255,255,0.03); border-bottom: 1px solid #1e293b;
+            background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .sidebar-header:hover { background: rgba(255,255,255,0.06); }
-        .collapse-icon { font-size: 14px; transition: transform 0.3s; }
-        .sidebar-header.collapsed .collapse-icon { transform: rotate(-90deg); }
+        .sidebar-header:hover { color: var(--primary-color); }
+        .hamburger-icon { font-size: 18px; }
 
         .sidebar-content { flex: 1; overflow-y: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; transition: max-height 0.3s ease; }
         .sidebar-content.collapsed { display: none; }
@@ -67,6 +68,12 @@
         }
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: var(--sidebar-active-bg); color: var(--primary-color); font-weight: 600; }
+
+        /* 二級選單縮排樣式 */
+        .sub-nav-group { margin-left: 10px; border-left: 2px solid #334155; padding-left: 5px; display: none; }
+        .sub-nav-group.active { display: block; }
+        .nav-sub-btn { font-size: 13px; padding: 8px 10px; color: #94a3b8; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; border-radius: 4px; }
+        .nav-sub-btn:hover { color: white; background: rgba(255,255,255,0.03); }
 
         .content-area { flex: 1; background: var(--bg-main); position: relative; overflow: hidden; }
         .page-padded { display: none; width: 100%; height: 100%; padding: 40px; overflow-y: auto; }
@@ -98,9 +105,9 @@
         <div class="login-box">
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
-            <h2>獅先生工具站</h2>
-            <p>歡迎使用 (雲端審查版)</p>
-            <input type="text" id="username" placeholder="您的姓名 (選填)">
+            <h2>李老師工具站</h2>
+            <p>歡迎使用</p>
+            <input type="text" id="username" placeholder="您的姓名">
             <button onclick="handleLogin()">進入系統</button>
         </div>
     </div>
@@ -138,10 +145,10 @@
 
     <div id="main-app">
         <div class="sidebar">
-            <!-- 可折疊的 HOME 標題列 -->
-            <div class="sidebar-header" id="sidebar-header-toggle" onclick="toggleSidebarSection()">
-                <span>🛠️ HOME</span>
-                <span class="collapse-icon">▼</span>
+            <!-- 漢堡折疊式 HOME 標題 -->
+            <div class="sidebar-header" onclick="toggleSidebarSection()">
+                <span>🛠️ HOME 導引區塊</span>
+                <span class="hamburger-icon">☰</span>
             </div>
             
             <div class="sidebar-content" id="sidebar-content-area">
@@ -158,6 +165,8 @@
                 
                 <div style="margin:15px 0; border-top:1px solid #334155;"></div>
                 <div class="nav-category">來自所有人的系統創作</div>
+                
+                <!-- 前台分類選單容器 -->
                 <div id="dynamic-nav-container"></div>
             </div>
 
@@ -268,7 +277,7 @@
                 <div id="tab-review" class="admin-section">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3>待審查作品清單 (支援 2000+ 設計作品管理)</h3>
+                            <h3>待審查作品清單</h3>
                             <button class="btn-success" onclick="batchApproveSelected()">✅ 批量上傳選中項目</button>
                         </div>
                         <div style="max-height:500px; overflow-y:auto;">
@@ -276,8 +285,9 @@
                                 <thead>
                                     <tr>
                                         <th><input type="checkbox" id="select-all-checkbox" onclick="toggleSelectAll(this)"> 全選</th>
-                                        <th>身分/作者</th>
-                                        <th>詳細資訊 (校/班/學號)</th>
+                                        <th>分類 (老師 / 學生)</th>
+                                        <th>作者 / 學號</th>
+                                        <th>詳細資訊</th>
                                         <th>HTML名稱 & 意念</th>
                                         <th>內容檢視</th>
                                         <th>操作</th>
@@ -311,7 +321,7 @@
                     <div class="card">
                         <h3>已上架工具管理</h3>
                         <table id="tool-manage-table">
-                            <thead><tr><th>工具名稱</th><th>作者</th><th>操作</th></tr></thead>
+                            <thead><tr><th>工具名稱</th><th>作者 / 學校 / 年級</th><th>操作</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -333,11 +343,8 @@
             }
         }
 
-        // 側邊欄 HOME 導引區塊折疊功能
         function toggleSidebarSection() {
-            const header = document.getElementById('sidebar-header-toggle');
             const content = document.getElementById('sidebar-content-area');
-            header.classList.toggle('collapsed');
             content.classList.toggle('collapsed');
         }
 
@@ -390,6 +397,14 @@
                 document.getElementById('modal-textarea').style.display = 'block';
             }
         }
+
+        // 前台巢狀選單切換控制
+        function toggleSubNav(groupId) {
+            const group = document.getElementById(groupId);
+            if(group) {
+                group.classList.toggle('active');
+            }
+        }
     </script>
 
     <script type="module">
@@ -425,16 +440,7 @@
                 closeAdminAuth(); 
                 showPage('admin');
             } catch(error) {
-                console.error("Firebase 登入失敗代碼：", error.code, error.message);
-                let errMessage = "驗證失敗！";
-                if(error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errMessage = "密碼錯誤，請重新輸入。";
-                } else if(error.code === 'auth/user-not-found') {
-                    errMessage = "找不到此管理員帳號，請確認 Firebase 中是否已建立該信箱。";
-                } else {
-                    errMessage = "登入失敗：" + error.message;
-                }
-                alert(errMessage);
+                alert("驗證失敗：" + error.message);
             }
         };
 
@@ -490,22 +496,28 @@
             } catch(err) { alert("提交失敗：" + err.message); }
         };
 
+        // 審查清單即時同步
         onSnapshot(query(collection(db, "pending_tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const tbody = document.querySelector('#review-table tbody');
             if(!tbody) return;
             tbody.innerHTML = "";
-            snapshot.forEach((docSnap) => {
-                let data = docSnap.data();
-                let id = docSnap.id;
-                let info = data.role === 'student' ? `${data.schoolType} ${data.grade}年級${data.className}班 | 學號: ${data.studentId}` : `老師`;
+            
+            let docs = [];
+            snapshot.forEach(docSnap => { docs.push({ id: docSnap.id, ...docSnap.data() }); });
+            
+            docs.forEach((data) => {
+                let id = data.id;
+                let categoryLabel = data.role === 'teacher' ? '<span style="color:#3b82f6; font-weight:bold;">👨‍🏫 老師</span>' : `<span style="color:#10b981; font-weight:bold;">📚 學生 (${data.schoolType}/${data.grade}年級)</span>`;
+                let info = data.role === 'student' ? `${data.schoolType} | ${data.grade}年級${data.className}班 | 學號: ${data.studentId}` : `老師專屬`;
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="review-checkbox" value="${id}"></td>
-                    <td><b>[${data.role === 'student' ? '學生' : '老師'}]</b> ${escapeHtml(data.author)}</td>
+                    <td>${categoryLabel}</td>
+                    <td><b>${escapeHtml(data.author)}</b></td>
                     <td>${escapeHtml(info)}</td>
                     <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">${escapeHtml(data.desc)}</small></td>
                     <td>
-                        <button class="btn-primary preview-btn" data-id="${id}">🔍 開啟HTML與原始碼</button>
+                        <button class="btn-primary preview-btn" data-id="${id}">🔍 預覽</button>
                     </td>
                     <td>
                         <button class="btn-success approve-btn" data-id="${id}">通過</button>
@@ -517,11 +529,8 @@
 
             document.querySelectorAll('.preview-btn').forEach(btn => {
                 let id = btn.getAttribute('data-id');
-                let item = snapshot.docs.find(d => d.id === id);
-                if(item) {
-                    let d = item.data();
-                    btn.onclick = () => openPreviewModal(d.name, d.code);
-                }
+                let item = docs.find(d => d.id === id);
+                if(item) btn.onclick = () => openPreviewModal(item.name, item.code);
             });
 
             document.querySelectorAll('.approve-btn').forEach(btn => {
@@ -541,7 +550,11 @@
             if(snap.exists()) {
                 let data = snap.data();
                 await addDoc(collection(db, "tools"), {
-                    name: `${data.name} (${data.author})`,
+                    role: data.role,
+                    schoolType: data.schoolType || "老師",
+                    grade: data.grade || "",
+                    author: data.author,
+                    name: data.name,
                     code: data.code,
                     timestamp: serverTimestamp()
                 });
@@ -564,6 +577,7 @@
             alert("批量上架完成！");
         };
 
+        // 前台動態多級選單生成（老師 / 學生 -> 中學/小學 -> 作品）
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
@@ -571,32 +585,83 @@
             if(container) container.innerHTML = "";
             if(adminToolsTable) adminToolsTable.innerHTML = "";
 
+            let teacherTools = [];
+            let middleSchoolTools = [];
+            let primarySchoolTools = [];
+
             snapshot.forEach((docSnap) => {
                 let data = docSnap.data();
                 let id = docSnap.id;
-                let btn = document.createElement('button');
-                btn.className = "nav-btn";
-                btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
-                btn.onclick = () => {
-                    showPage('page-' + id);
-                    let pageDiv = document.getElementById('page-' + id);
-                    if(!pageDiv) {
-                        pageDiv = document.createElement('div');
-                        pageDiv.id = 'page-' + id;
-                        pageDiv.className = 'page-full';
-                        pageDiv.innerHTML = `<iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999;">關閉</button>`;
-                        pagesContainer.appendChild(pageDiv);
-                    }
-                    showPage('page-' + id);
-                };
-                container.appendChild(btn);
+                
+                if (data.role === 'teacher') {
+                    teacherTools.push({ id, ...data });
+                } else if (data.schoolType === '中學') {
+                    middleSchoolTools.push({ id, ...data });
+                } else {
+                    primarySchoolTools.push({ id, ...data });
+                }
 
+                // 後台已上架管理表
                 if(adminToolsTable) {
+                    let authorDisplay = data.role === 'teacher' ? `${data.author} (老師)` : `${data.author} (${data.schoolType} ${data.grade}年級)`;
                     let tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>-</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>`;
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(authorDisplay)}</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>`;
                     adminToolsTable.appendChild(tr);
                 }
+
+                // 產生頁面內容 iframe
+                let pageDiv = document.getElementById('page-' + id);
+                if(!pageDiv) {
+                    pageDiv = document.createElement('div');
+                    pageDiv.id = 'page-' + id;
+                    pageDiv.className = 'page-full';
+                    pageDiv.innerHTML = `<iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999; padding:6px 12px; background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer;">關閉預覽</button>`;
+                    pagesContainer.appendChild(pageDiv);
+                }
             });
+
+            // 建立前台第一級：老師工具
+            let teacherGroupHtml = '';
+            teacherTools.forEach(t => {
+                teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></button>`;
+            });
+
+            // 建立前台學生第二級：中學
+            let middleGroupHtml = '';
+            middleSchoolTools.forEach(t => {
+                middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
+            });
+
+            // 建立前台學生第二級：小學
+            let primaryGroupHtml = '';
+            primarySchoolTools.forEach(t => {
+                primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}')">🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></button>`;
+            });
+
+            // 組合完整的階層式選單 HTML
+            container.innerHTML = `
+                <!-- 第一級：老師工具 -->
+                <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.length})</button>
+                <div id="sub-teacher" class="sub-nav-group">
+                    ${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}
+                </div>
+
+                <!-- 第一級：學生工具 -->
+                <button class="nav-btn" onclick="toggleSubNav('sub-student')">📚 學生工具 (${middleSchoolTools.length + primarySchoolTools.length})</button>
+                <div id="sub-student" class="sub-nav-group">
+                    <!-- 第二級：中學 -->
+                    <button class="nav-sub-btn" onclick="toggleSubNav('sub-middle')" style="font-weight:bold; color:#38bdf8;">🏫 中學 (${middleSchoolTools.length})</button>
+                    <div id="sub-middle" class="sub-nav-group">
+                        ${middleGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無中學作品</div>'}
+                    </div>
+
+                    <!-- 第二級：小學 -->
+                    <button class="nav-sub-btn" onclick="toggleSubNav('sub-primary')" style="font-weight:bold; color:#38bdf8; margin-top:5px;">🏫 小學 (${primarySchoolTools.length})</button>
+                    <div id="sub-primary" class="sub-nav-group">
+                        ${primaryGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無小學作品</div>'}
+                    </div>
+                </div>
+            `;
         });
 
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
