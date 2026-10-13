@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獅先生工具站 | Lion Tools (完整雲端版)</title>
+    <title>獅先生工具站 | Lion Tools (完整雲端審查版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 全局重置與變數 --- */
         :root {
             --sidebar-bg: #0f172a; --sidebar-text: #94a3b8; --sidebar-active-bg: #1e293b;
             --bg-main: #f8fafc; --card-bg: #ffffff;
@@ -35,11 +34,11 @@
         .login-box input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; }
         .login-box button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
         
-        /* 按鈕樣式 */
         .btn-primary { background: var(--primary-color); color: white; padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .btn-danger:hover { background: #dc2626; }
         .btn-secondary { background: #64748b; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-success { background: var(--success); color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
         /* --- 佈局 --- */
         #main-app { display: flex; width: 100%; height: 100%; }
@@ -60,23 +59,19 @@
         .page-padded.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 元件 */
         .card { background: white; padding: 32px; border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 24px; border: 1px solid var(--border-color); }
-        .text-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; margin-bottom: 10px; }
+        .text-input, .select-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; margin-bottom: 10px; background: white; }
         
-        /* 表格 */
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #f1f5f9; color: #64748b; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
-        /* 後台 Tab */
         .admin-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; overflow-x: auto; }
         .admin-tabs button { background: none; border: none; padding: 12px 20px; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; white-space: nowrap; }
         .admin-tabs button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: bold; }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
         
-        /* 廣告與 iframe */
         .ad-slot { margin-top: 10px; display: none; text-align: center; }
         .ad-slot img { max-width: 100%; border-radius: 8px; }
         #dynamic-pages, .page-full, iframe.tool-frame { width: 100%; height: 100%; border: none; }
@@ -84,7 +79,7 @@
         .page-full { display: none; pointer-events: auto; background: white; }
         .page-full.active { display: block; }
 
-        /* --- 新學貼貼碼 專用樣式 --- */
+        /* 貼貼碼樣式 */
         .puzzle-layout { display: flex; height: 100%; gap: 15px; }
         .puzzle-sidebar { width: 250px; background: #e2e8f0; border-radius: 8px; display:flex; flex-direction:column; overflow: hidden; }
         .puzzle-cat-tabs { display: flex; background: #cbd5e1; flex-wrap: wrap; }
@@ -93,56 +88,34 @@
         .puzzle-blocks-container { padding: 10px; overflow-y: auto; flex:1; }
         .puzzle-cat-section { display: none; }
         .puzzle-cat-section.active { display: block; animation: fadeIn 0.2s; }
-
         .puzzle-block-source { 
             background: white; border: 1px solid #cbd5e1; padding: 8px 10px; margin-bottom: 8px; 
             border-radius: 4px; cursor: grab; font-size: 13px; display: flex; align-items: center; gap: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: transform 0.1s;
         }
         .puzzle-block-source:active { cursor: grabbing; transform: scale(0.98); }
-        .puzzle-block-source:hover { border-color: var(--primary-color); }
-        .puzzle-block-source span { pointer-events: none; }
-        
         .puzzle-workspace { 
             flex: 1; background: #fff; border: 2px dashed #cbd5e1; border-radius: 8px; 
             padding: 20px; overflow-y: auto; position: relative; min-height: 200px;
         }
-        .puzzle-workspace.drag-over, .puzzle-container-inner.drag-over { 
-            border-color: var(--primary-color); background: #eff6ff; 
-        }
-
+        .puzzle-workspace.drag-over, .puzzle-container-inner.drag-over { border-color: var(--primary-color); background: #eff6ff; }
         .puzzle-right-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
         .puzzle-preview-area { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; background: white; }
         .puzzle-code-display { 
             flex: 1; background: #1e293b; color: #10b981; border-radius: 8px; 
             padding: 15px; font-family: monospace; font-size: 13px; resize: none; border: none;
         }
-        
         .puzzle-item { 
             background: #f8fafc; border: 1px solid #94a3b8; border-left: 5px solid var(--primary-color);
             padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px;
             position: relative; cursor: grab; 
         }
-        .puzzle-item:active { cursor: grabbing; opacity: 0.8; }
-        .puzzle-item small { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; pointer-events: none; }
-        .puzzle-item input { padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; }
-        
         .puzzle-delete-btn { 
             position: absolute; top: 5px; right: 5px; background: #fee2e2; color: #ef4444; 
-            border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center;
-            z-index: 10;
+            border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 20px; text-align: center; z-index: 10;
         }
-        .puzzle-delete-btn:hover { background: #ef4444; color: white; }
-        
-        .puzzle-container-inner {
-            min-height: 40px; background: #fff; border: 2px dashed #e2e8f0; border-radius: 4px;
-            padding: 10px; margin-top: 5px;
-        }
+        .puzzle-container-inner { min-height: 40px; background: #fff; border: 2px dashed #e2e8f0; border-radius: 4px; padding: 10px; margin-top: 5px; }
         .puzzle-container-inner:empty::before { content: "拖曳元件到此..."; color: #cbd5e1; font-size: 12px; }
-
-        .puzzle-item[data-cat="fun"] { border-left-color: #d946ef; background: #fdf4ff; }
-        .puzzle-item[data-cat="layout"] { border-left-color: #8b5cf6; background: #f5f3ff; }
-        .puzzle-item[data-cat="media"] { border-left-color: #10b981; }
     </style>
 </head>
 <body>
@@ -152,10 +125,9 @@
             <div class="close-login" onclick="closeLogin()">✕</div>
             <div style="font-size:30px; margin-bottom:10px;">🦁</div>
             <h2>獅先生工具站</h2>
-            <p>歡迎使用 (完整雲端版)</p>
+            <p>歡迎使用 (雲端審查版)</p>
             <input type="text" id="username" placeholder="您的姓名 (選填)">
             <button onclick="handleLogin()">進入系統</button>
-            <div id="ad-pos-login-screen" class="ad-slot" style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"></div>
         </div>
     </div>
 
@@ -176,8 +148,6 @@
         <div class="sidebar">
             <div class="sidebar-header">🛠️ HOME </div>
             <div class="sidebar-content">
-                <div id="ad-pos-sidebar-top" class="ad-slot"></div>
-                
                 <div class="nav-category">原有系統</div>
                 <button class="nav-btn" onclick="showPage('translator')">🌐 代碼即打即有</button>
                 <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼</button>
@@ -186,7 +156,6 @@
                 <div class="nav-category">一般</div>
                 <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
                 <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/系統許願板</button>
-                <button class="nav-btn" onclick="showPage('ad-center')">📢 廣告申請</button>
 
                 <div class="nav-category">管理者</div>
                 <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒 後台管理</button>
@@ -194,20 +163,14 @@
                 <div style="margin:15px 0; border-top:1px solid #334155;"></div>
                 <div class="nav-category">來自所有人的系統創作</div>
                 <div id="dynamic-nav-container"></div>
-                
-                <div id="ad-pos-sidebar-bottom" class="ad-slot"></div>
             </div>
             <div class="sidebar-footer" style="padding:20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid #1e293b;">
                 <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">0</span></div>
-                <div style="margin-top:15px; pt-15px; border-top:1px solid rgba(255,255,255,0.05); opacity:0.6; font-size:10px;">
-                    {© 2025 獅先生工具站}<br>
-                </div>
+                <div style="margin-top:15px; opacity:0.6; font-size:10px;">{© 2026 獅先生工具站}</div>
             </div>
         </div>
 
         <div class="content-area">
-            <div id="ad-pos-content-top" class="ad-slot" style="padding:20px 40px 0;"></div>
-
             <div id="home" class="page-padded active">
                 <h1>獅先生工具站簡介</h1>
                 <div class="card"><div id="home-dynamic-content">載入中...</div></div>
@@ -224,16 +187,6 @@
                 </div>
             </div>
 
-            <div id="ad-center" class="page-padded">
-                <h1>廣告申請</h1>
-                <div class="card">
-                    <input type="text" id="ad-req-company" class="text-input" placeholder="公司">
-                    <input type="text" id="ad-req-contact" class="text-input" placeholder="聯絡">
-                    <input type="number" id="ad-req-bid" class="text-input" placeholder="預算">
-                    <button class="btn-primary" onclick="submitAdRequest()">提交申請</button>
-                </div>
-            </div>
-
             <div id="translator" class="page-padded">
                 <h1>中文代碼工廠</h1>
                 <div class="card" style="display:flex; gap:20px; height:600px;">
@@ -244,9 +197,7 @@
 
             <div id="code-puzzle" class="page-padded">
                 <h1>🧩 新學貼貼碼 (拖曳生成器)</h1>
-                <p style="color:#64748b; margin-bottom:15px; font-size:14px;">
-                    超級積木庫：文字、排版、媒體，還有有趣的特效！拖曳組合，觀察下方的原始碼如何變化。
-                </p>
+                <p style="color:#64748b; margin-bottom:15px; font-size:14px;">超級積木庫：拖曳組合，觀察下方的原始碼變化。</p>
                 <div class="card" style="height: 600px; padding: 20px;">
                     <div class="puzzle-layout">
                         <div class="puzzle-sidebar">
@@ -260,83 +211,85 @@
                                 <div id="pcat-text" class="puzzle-cat-section active">
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h1">📄 大標題 (H1)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h2">📄 中標題 (H2)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="h3">📄 小標題 (H3)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="p">📝 文字段落 (P)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="bold">𝐁 粗體字 (Bold)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="italic">𝘐 斜體字 (Italic)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="quote">❝ 引用區塊 (Quote)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="ul">🔢 列表容器 (UL)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="li">🔸 列表項目 (LI)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="red-text" style="color:#ef4444;">🔴 紅色字體</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-text" style="color:#3b82f6;">🔵 藍色字體</div>
                                 </div>
                                 <div id="pcat-layout" class="puzzle-cat-section">
-                                    <div class="puzzle-block-source" style="border:1px solid #8b5cf6;" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列 (Flex Row)</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-flex">↔️ 橫向排列 (Flex)</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-center">🎯 置中容器 (Center)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-right">➡️ 靠右容器 (Right)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-col-2">⏸️ 雙欄排版 (50/50)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-border">🔲 卡片框線 (Card)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-shadow">☁️ 陰影卡片 (Shadow)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="div-round">🟣 圓角區塊 (Round)</div>
-                                    <div class="puzzle-block-source" style="background:#fee2e2;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-red">🟥 紅色背景</div>
-                                    <div class="puzzle-block-source" style="background:#dbeafe;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-blue">🟦 藍色背景</div>
-                                    <div class="puzzle-block-source" style="background:#dcfce7;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-green">🟩 綠色背景</div>
-                                    <div class="puzzle-block-source" style="background:#fef9c3;" draggable="true" ondragstart="dragNew(event)" data-type="div-bg-yellow">🟨 黃色警告</div>
                                 </div>
                                 <div id="pcat-media" class="puzzle-cat-section">
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="button">🔘 按鈕</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="blue-btn">🔵 藍色按鈕</div>
                                     <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="img">🖼️ 圖片</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="img-circle">👤 圓形頭像</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="link">🔗 超連結</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="input">📥 輸入框</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="checkbox">☑️ 核取方塊</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="select">🔽 下拉選單</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="hr">➖ 分隔線</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="progress">📊 進度條</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="video">🎬 影片框 (預設)</div>
                                 </div>
                                 <div id="pcat-fun" class="puzzle-cat-section">
-                                    <div class="puzzle-block-source" style="background:linear-gradient(90deg, red, blue); color:white;" draggable="true" ondragstart="dragNew(event)" data-type="fun-rainbow">🌈 彩虹字 (Rainbow)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-neon">💡 霓虹按鈕 (Neon)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-glass">🧊 毛玻璃 (Glass)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-spin">🔄 旋轉元件 (Spin)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-shake">🫨 抖動元件 (Shake)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-3d-btn">🆙 3D 按鈕</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-spoiler">🙈 防雷刮刮樂 (Spoiler)</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-typewriter">⌨️ 打字機字體</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-gradient-box">🎨 漸層背景盒</div>
-                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="marquee">🏃 跑馬燈</div>
+                                    <div class="puzzle-block-source" draggable="true" ondragstart="dragNew(event)" data-type="fun-rainbow">🌈 彩虹字</div>
                                 </div>
                             </div>
                         </div>
-
                         <div class="puzzle-workspace" id="puzzle-root" ondrop="drop(event)" ondragover="allowDrop(event)">
                             <div id="puzzle-empty-msg" style="color:#cbd5e1; text-align:center; margin-top:50px; pointer-events:none;">拖曳積木到這裡...</div>
                         </div>
-
                         <div class="puzzle-right-panel">
-                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽 (Preview)</div>
+                            <div style="font-weight:bold; color:#64748b; font-size:12px;">👀 即時預覽</div>
                             <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
-                            <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:5px;">💻 原始碼 (Source Code)</div>
-                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly placeholder="這裡會顯示 HTML 代碼..."></textarea>
+                            <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:5px;">💻 原始碼</div>
+                            <textarea id="puzzle-source-display" class="puzzle-code-display" readonly></textarea>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- 上傳系統 (支援老師/學生分流與必填欄位) -->
             <div id="add-tool" class="page-padded">
-                <h1>製作新工具 (雲端同步)</h1>
-                <p style="font-size:12px; color:#ef4444; margin-bottom:10px;">注意：您製作的工具將會同步給所有使用者看到！</p>
+                <h1>上傳系統創作</h1>
+                <p style="font-size:12px; color:#ef4444; margin-bottom:15px;">注意：所有提交均需經後台審查核准後才會公開上傳給所有人！</p>
                 <div class="card">
-                    <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #ccc; padding:20px; text-align:center; cursor:pointer;">📂 上傳檔案</div>
-                    <input type="file" id="file-uploader" hidden onchange="processFile(this)">
-                    <input type="text" id="new-tool-name" class="text-input" placeholder="工具名稱">
-                    <textarea id="new-tool-code" class="text-input" style="height:150px; font-family:monospace;" placeholder="HTML代碼"></textarea>
-                    <button class="btn-primary" onclick="userAddNewTool()">生成並同步工具</button>
+                    <label style="font-weight:bold; display:block; margin-bottom:8px;">1. 選擇上傳身分：</label>
+                    <select id="uploader-role" class="select-input" onchange="toggleRoleForm()">
+                        <option value="student">學生工具</option>
+                        <option value="teacher">老師工具</option>
+                    </select>
+
+                    <!-- 學生專屬欄位 -->
+                    <div id="student-form-fields" style="display:block; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                        <label style="font-size:12px; color:#64748b;">校別：</label>
+                        <select id="stu-school-type" class="select-input">
+                            <option value="中學">中學</option>
+                            <option value="小學">小學</option>
+                        </select>
+                        <label style="font-size:12px; color:#64748b;">年級 (1-6)：</label>
+                        <select id="stu-grade" class="select-input">
+                            <option value="1">1 年級</option><option value="2">2 年級</option><option value="3">3 年級</option>
+                            <option value="4">4 年級</option><option value="5">5 年級</option><option value="6">6 年級</option>
+                        </select>
+                        <label style="font-size:12px; color:#64748b;">班別：</label>
+                        <select id="stu-class-name" class="select-input">
+                            <option value="敬">敬</option><option value="靜">靜</option><option value="恒">恒</option>
+                            <option value="毅">毅</option><option value="愛">愛</option><option value="望">望</option>
+                        </select>
+                        <input type="text" id="stu-name" class="text-input" placeholder="學生姓名">
+                        <input type="text" id="stu-id" class="text-input" placeholder="學號">
+                    </div>
+
+                    <!-- 老師專屬欄位 -->
+                    <div id="teacher-form-fields" style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                        <input type="text" id="tea-name" class="text-input" placeholder="老師姓名">
+                    </div>
+
+                    <!-- 共通作品欄位 -->
+                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                        <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #ccc; padding:15px; text-align:center; cursor:pointer; margin-bottom:10px;">📂 點此上傳 HTML 檔案</div>
+                        <input type="file" id="file-uploader" hidden onchange="processFile(this)">
+                        <input type="text" id="new-tool-name" class="text-input" placeholder="HTML 名稱 (作品標題)">
+                        <textarea id="new-tool-desc" class="text-input" style="height:80px;" placeholder="設計意念 (可不填)"></textarea>
+                        <textarea id="new-tool-code" class="text-input" style="height:120px; font-family:monospace;" placeholder="HTML 原始碼"></textarea>
+                        <button class="btn-primary" onclick="userAddNewTool()">提交審查</button>
+                    </div>
                 </div>
             </div>
 
+            <!-- 後台管理區 -->
             <div id="admin" class="page-padded">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h1>後台管理</h1>
@@ -344,11 +297,10 @@
                 </div>
                 <div class="admin-tabs">
                     <button class="active" onclick="switchAdminTab('tab-dashboard')">📊 總覽 (日誌)</button>
-                    <button onclick="switchAdminTab('tab-ad-manage')">📢 投放</button>
-                    <button onclick="switchAdminTab('tab-ads-req')">💰 申請</button>
+                    <button onclick="switchAdminTab('tab-review')">🔍 作品審查管理</button>
                     <button onclick="switchAdminTab('tab-comments')">💬 留言</button>
                     <button onclick="switchAdminTab('tab-home-edit')">🏠 主頁</button>
-                    <button onclick="switchAdminTab('tab-tools')">🛠️ 工具</button>
+                    <button onclick="switchAdminTab('tab-tools')">🛠️ 已發布工具</button>
                 </div>
                 
                 <div id="tab-dashboard" class="admin-section active">
@@ -363,37 +315,30 @@
                     </div>
                 </div>
                 
-                <div id="tab-ad-manage" class="admin-section">
-                     <div class="card">
-                        <h3>新增廣告 (圖片轉存資料庫模式)</h3>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                            <input type="file" id="ad-img-file" accept="image/*" class="text-input" style="flex:1;">
-                            <input type="text" id="ad-link-input" class="text-input" placeholder="跳轉連結" style="flex:1;">
-                            <select id="ad-pos-input" class="text-input" style="width:200px;">
-                                <option value="login-screen">登入畫面 (下方)</option>
-                                <option value="sidebar-top">側邊欄 (上)</option>
-                                <option value="sidebar-bottom">側邊欄 (下)</option>
-                                <option value="content-top">內容區 (頂)</option>
-                            </select>
-                            <button class="btn-primary" onclick="uploadAndAddAdBase64()" style="height:45px;">發布</button>
+                <!-- 審查管理 Tab (支援批量勾選與審查) -->
+                <div id="tab-review" class="admin-section">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3>待審查作品清單</h3>
+                            <button class="btn-success" onclick="batchApproveSelected()">✅ 批量上傳選中項目</button>
                         </div>
-                        <p style="color:#64748b; font-size:12px;">* 圖片大小限制 500KB 以下</p>
-                        
-                        <h3 style="margin-top:20px;">已發布</h3>
-                        <table id="ad-table"><thead><tr><th>位置</th><th>預覽</th><th>操作</th></tr></thead><tbody></tbody></table>
+                        <div style="max-height:500px; overflow-y:auto;">
+                            <table id="review-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="select-all-checkbox" onclick="toggleSelectAll(this)"> 全選</th>
+                                        <th>身分/作者</th>
+                                        <th>詳細資訊 (校/班/學號)</th>
+                                        <th>HTML名稱 & 意念</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <div id="tab-ads-req" class="admin-section">
-                    <div class="card">
-                        <h3>廣告申請列表</h3>
-                        <table id="ad-req-table">
-                            <thead><tr><th>公司</th><th>聯絡</th><th>預算</th><th>時間</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-                
                 <div id="tab-comments" class="admin-section">
                     <div class="card">
                         <h3>留言管理</h3>
@@ -407,25 +352,16 @@
                 <div id="tab-home-edit" class="admin-section">
                     <div class="card">
                         <h3>主頁內容編輯器</h3>
-                        <div style="background:#f1f5f9; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #ddd; display:flex; gap:10px; align-items:center;">
-                            <span style="font-size:12px; font-weight:bold;">插入圖片控制:</span>
-                            <button class="btn-secondary" onclick="insertExternalImg()">🔗 插入外部連結(推薦)</button>
-                            <input type="file" id="home-img-upload" style="display:none" onchange="processHomeImage(this)">
-                            <button class="btn-secondary" onclick="document.getElementById('home-img-upload').click()">📂 上傳小圖 (&lt;300KB)</button>
-                        </div>
                         <textarea id="admin-home-editor" class="text-input" style="height:300px; font-family:monospace;"></textarea>
-                        <div style="margin-top:15px; display:flex; gap:10px;">
-                            <button class="btn-primary" onclick="saveHomeContent()">保存變更</button>
-                            <button class="btn-danger" onclick="clearHomeEditor()">🗑️ 一鍵清空</button>
-                        </div>
+                        <button class="btn-primary" onclick="saveHomeContent()" style="margin-top:15px;">保存變更</button>
                     </div>
                 </div>
 
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3>管理使用者工具</h3>
+                        <h3>已上架工具管理</h3>
                         <table id="tool-manage-table">
-                            <thead><tr><th>工具名稱</th><th>操作</th></tr></thead>
+                            <thead><tr><th>工具名稱</th><th>作者</th><th>操作</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -437,7 +373,6 @@
     </div>
 
     <script>
-        // --- 基本功能 ---
         function showPage(pageId) {
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
             const target = document.getElementById(pageId);
@@ -458,6 +393,17 @@
             event.currentTarget.classList.add('active');
         }
 
+        function toggleRoleForm() {
+            let role = document.getElementById('uploader-role').value;
+            if(role === 'student') {
+                document.getElementById('student-form-fields').style.display = 'block';
+                document.getElementById('teacher-form-fields').style.display = 'none';
+            } else {
+                document.getElementById('student-form-fields').style.display = 'none';
+                document.getElementById('teacher-form-fields').style.display = 'block';
+            }
+        }
+
         function updateCompilerPreview() { document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value; }
         function processFile(input) {
             const file = input.files[0];
@@ -466,29 +412,7 @@
             reader.onload = function(e) { document.getElementById('new-tool-code').value = e.target.result; };
             reader.readAsText(file);
         }
-        function insertExternalImg() {
-            const url = prompt("請輸入圖片網址 (URL):");
-            if(url) {
-                const ta = document.getElementById('admin-home-editor');
-                ta.value += `\n<img src="${url}" style="max-width:100%; border-radius:8px; margin:10px 0;">\n`;
-            }
-        }
-        function processHomeImage(input) {
-            const file = input.files[0];
-            if(!file) return;
-            if(file.size > 300 * 1024) { alert("圖片太大了！請小於 300KB"); return; }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const ta = document.getElementById('admin-home-editor');
-                ta.value += `\n<img src="${e.target.result}" style="max-width:100%; border-radius:8px; margin:10px 0;">\n`;
-            };
-            reader.readAsDataURL(file);
-        }
-        function clearHomeEditor() {
-            if(confirm("確定要清空嗎？")) document.getElementById('admin-home-editor').value = "";
-        }
 
-        // --- 新學貼貼碼功能 ---
         function switchPuzzleCat(cat) {
             document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
@@ -502,219 +426,32 @@
             ev.stopPropagation();
         }
 
-        function dragExisting(ev) {
-            ev.dataTransfer.setData("source", "workspace");
-            if(!ev.target.id) ev.target.id = "moving-" + Date.now();
-            ev.dataTransfer.setData("elemId", ev.target.id);
-            ev.stopPropagation();
-        }
-
-        function allowDrop(ev) {
-            ev.preventDefault();
-            let target = ev.target;
-            if(target.tagName === 'INPUT' || target.tagName === 'SMALL' || target.tagName === 'BUTTON') return;
-            if(target.classList.contains('puzzle-workspace') || target.classList.contains('puzzle-container-inner')) {
-                 target.classList.add('drag-over');
-            }
-        }
-
+        function allowDrop(ev) { ev.preventDefault(); }
         function drop(ev) {
             ev.preventDefault();
-            ev.stopPropagation();
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
             document.getElementById('puzzle-empty-msg').style.display = 'none';
-
-            let source = ev.dataTransfer.getData("source");
-            let targetZone = ev.target;
-            if(!targetZone.classList.contains('puzzle-workspace') && !targetZone.classList.contains('puzzle-container-inner')) {
-                targetZone = targetZone.closest('.puzzle-container-inner') || document.getElementById('puzzle-root');
-            }
-
-            if(source === 'sidebar') {
-                let type = ev.dataTransfer.getData("type");
-                let newItem = createPuzzleItem(type);
-                targetZone.appendChild(newItem);
-            } else if (source === 'workspace') {
-                let elemId = ev.dataTransfer.getData("elemId");
-                let movingElem = document.getElementById(elemId);
-                if(movingElem) {
-                    targetZone.appendChild(movingElem);
-                    if(movingElem.id.startsWith("moving-")) movingElem.removeAttribute("id");
-                }
-            }
+            let type = ev.dataTransfer.getData("type");
+            let item = document.createElement('div');
+            item.className = 'puzzle-item';
+            item.innerHTML = `<button class="puzzle-delete-btn" onclick="this.parentElement.remove()">✕</button><small>${type}</small>`;
+            document.getElementById('puzzle-root').appendChild(item);
             renderPuzzle();
         }
 
-        function createPuzzleItem(type) {
-            let item = document.createElement('div');
-            item.className = 'puzzle-item';
-            item.draggable = true;
-            item.ondragstart = dragExisting;
-
-            let delBtn = document.createElement('button');
-            delBtn.className = 'puzzle-delete-btn';
-            delBtn.innerHTML = '✕';
-            delBtn.onclick = function(e) { 
-                e.stopPropagation(); item.remove(); 
-                if(document.getElementById('puzzle-root').children.length <= 1) document.getElementById('puzzle-empty-msg').style.display = 'block';
-                renderPuzzle(); 
-            };
-            
-            let label = document.createElement('small');
-            let input = document.createElement('input');
-            input.type = 'text';
-            input.oninput = renderPuzzle; 
-            
-            let isContainer = false;
-
-            if(type === 'h1') { label.innerText='H1 大標題'; input.placeholder='大標題...'; }
-            else if(type === 'h2') { label.innerText='H2 中標題'; input.placeholder='中標題...'; }
-            else if(type === 'h3') { label.innerText='H3 小標題'; input.placeholder='小標題...'; }
-            else if(type === 'p') { label.innerText='段落 P'; input.placeholder='內文...'; }
-            else if(type === 'bold') { label.innerText='粗體 B'; input.placeholder='粗體文字...'; }
-            else if(type === 'italic') { label.innerText='斜體 I'; input.placeholder='斜體文字...'; }
-            else if(type === 'quote') { label.innerText='引用 Blockquote'; input.placeholder='引用內容...'; }
-            else if(type === 'red-text') { label.innerText='🔴 紅字'; input.placeholder='紅字...'; }
-            else if(type === 'blue-text') { label.innerText='🔵 藍字'; input.placeholder='藍字...'; }
-            else if(type === 'ul') { label.innerText='🔢 列表容器 UL'; input.style.display='none'; isContainer=true; item.setAttribute('data-cat','layout'); }
-            else if(type === 'li') { label.innerText='🔸 列表項目 LI'; input.placeholder='項目內容...'; }
-            else if(type.startsWith('div-')) {
-                isContainer = true; item.setAttribute('data-cat','layout');
-                if(type === 'div-flex') { label.innerText='↔️ 橫向排列 (Flex)'; input.style.display='none'; }
-                else if(type === 'div-center') { label.innerText='🎯 置中容器'; input.style.display='none'; }
-                else if(type === 'div-right') { label.innerText='➡️ 靠右容器'; input.style.display='none'; }
-                else if(type === 'div-col-2') { label.innerText='⏸️ 雙欄 (Flex 50%)'; input.style.display='none'; }
-                else if(type === 'div-border') { label.innerText='🔲 卡片框線'; input.style.display='none'; }
-                else if(type === 'div-shadow') { label.innerText='☁️ 陰影卡片'; input.style.display='none'; }
-                else if(type === 'div-round') { label.innerText='🟣 圓角區塊'; input.style.display='none'; }
-                else if(type === 'div-bg-red') { label.innerText='🟥 紅色背景'; input.style.display='none'; item.style.backgroundColor='#fee2e2'; }
-                else if(type === 'div-bg-blue') { label.innerText='🟦 藍色背景'; input.style.display='none'; item.style.backgroundColor='#dbeafe'; }
-                else if(type === 'div-bg-green') { label.innerText='🟩 綠色背景'; input.style.display='none'; item.style.backgroundColor='#dcfce7'; }
-                else if(type === 'div-bg-yellow') { label.innerText='🟨 黃色警告'; input.style.display='none'; item.style.backgroundColor='#fef9c3'; }
-            }
-            else if(type === 'button') { label.innerText='按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'blue-btn') { label.innerText='藍色按鈕'; input.placeholder='按鈕文字...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'img') { label.innerText='圖片 URL'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'img-circle') { label.innerText='圓形頭像 URL'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'link') { label.innerText='超連結'; input.placeholder='https://...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'input') { label.innerText='輸入框'; input.placeholder='預設文字...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'checkbox') { label.innerText='核取方塊 Checkbox'; input.placeholder='選項文字...'; item.setAttribute('data-cat','media'); }
-            else if(type === 'select') { label.innerText='下拉選單'; input.style.display='none'; item.setAttribute('data-cat','media'); }
-            else if(type === 'hr') { label.innerText='分隔線'; input.style.display='none'; item.setAttribute('data-cat','media'); }
-            else if(type === 'progress') { label.innerText='進度條 %'; input.placeholder='50'; item.setAttribute('data-cat','media'); }
-            else if(type === 'video') { label.innerText='影片框'; input.style.display='none'; item.setAttribute('data-cat','media'); }
-            else if(type === 'marquee') { label.innerText='跑馬燈'; input.placeholder='跑動的文字...'; item.setAttribute('data-cat','media'); }
-            else if(type.startsWith('fun-')) {
-                item.setAttribute('data-cat','fun');
-                if(type === 'fun-rainbow') { label.innerText='🌈 彩虹字'; input.placeholder='彩虹文字...'; }
-                else if(type === 'fun-neon') { label.innerText='💡 霓虹按鈕'; input.placeholder='發光按鈕...'; }
-                else if(type === 'fun-glass') { label.innerText='🧊 毛玻璃容器'; input.style.display='none'; isContainer=true; }
-                else if(type === 'fun-spin') { label.innerText='🔄 旋轉元件'; input.placeholder='旋轉文字...'; }
-                else if(type === 'fun-shake') { label.innerText='🫨 抖動元件'; input.placeholder='抖動文字...'; }
-                else if(type === 'fun-3d-btn') { label.innerText='🆙 3D 按鈕'; input.placeholder='按我...'; }
-                else if(type === 'fun-spoiler') { label.innerText='🙈 防雷刮刮樂'; input.placeholder='隱藏的內容...'; }
-                else if(type === 'fun-typewriter') { label.innerText='⌨️ 打字機字體'; input.placeholder='代碼風...'; }
-                else if(type === 'fun-gradient-box') { label.innerText='🎨 漸層背景盒'; input.style.display='none'; isContainer=true; }
-            }
-
-            item.setAttribute('data-tag', type);
-            item.appendChild(delBtn);
-            item.appendChild(label);
-            if(input.style.display !== 'none') item.appendChild(input);
-
-            if(isContainer) {
-                let innerZone = document.createElement('div');
-                innerZone.className = 'puzzle-container-inner';
-                innerZone.ondrop = drop; 
-                innerZone.ondragover = allowDrop;
-                item.appendChild(innerZone);
-            }
-
-            return item;
-        }
-
-        function crawlDOM(element) {
-            let code = "";
-            let children = element.children;
-
-            for(let child of children) {
-                if(!child.classList.contains('puzzle-item')) continue;
-
-                let tag = child.getAttribute('data-tag');
-                let val = child.querySelector('input') ? child.querySelector('input').value : "";
-                
-                if(tag === 'h1') code += `<h1>${val}</h1>\n`;
-                else if(tag === 'h2') code += `<h2>${val}</h2>\n`;
-                else if(tag === 'h3') code += `<h3>${val}</h3>\n`;
-                else if(tag === 'p') code += `<p>${val}</p>\n`;
-                else if(tag === 'bold') code += `<b>${val}</b><br>\n`;
-                else if(tag === 'italic') code += `<i>${val}</i><br>\n`;
-                else if(tag === 'quote') code += `<blockquote style="border-left:4px solid #ccc; margin:10px; padding:10px; background:#f9f9f9;">${val}</blockquote>\n`;
-                else if(tag === 'red-text') code += `<span style="color:red;">${val}</span><br>\n`;
-                else if(tag === 'blue-text') code += `<span style="color:blue;">${val}</span><br>\n`;
-                else if(tag === 'ul') code += `<ul>\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</ul>\n`;
-                else if(tag === 'li') code += `<li>${val}</li>\n`;
-                else if(tag === 'div-flex') code += `<div style="display:flex; gap:10px; align-items:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-center') code += `<div style="text-align:center;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-right') code += `<div style="text-align:right;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-col-2') code += `<div style="display:flex; gap:10px;"><div style="flex:1; border:1px dashed #ccc; padding:5px;">左欄</div><div style="flex:1; border:1px dashed #ccc; padding:5px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div></div>\n`;
-                else if(tag === 'div-border') code += `<div style="border:1px solid #333; padding:15px; border-radius:4px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-shadow') code += `<div style="box-shadow:0 4px 6px rgba(0,0,0,0.1); padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'div-round') code += `<div style="border-radius:20px; border:1px solid #ccc; padding:15px; overflow:hidden;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag.startsWith('div-bg-')) {
-                    let color = tag.split('-')[2];
-                    if(color=='red') color='#fee2e2'; if(color=='blue') color='#dbeafe'; if(color=='green') color='#dcfce7'; if(color=='yellow') color='#fef9c3';
-                    code += `<div style="background-color:${color}; padding:15px; border-radius:8px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                }
-                else if(tag === 'button') code += `<button>${val||'Button'}</button>\n`;
-                else if(tag === 'blue-btn') code += `<button style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:4px;">${val||'Button'}</button>\n`;
-                else if(tag === 'img') { if(val) code += `<img src="${val}" style="max-width:100%; border-radius:4px;">\n`; }
-                else if(tag === 'img-circle') { if(val) code += `<img src="${val}" style="width:100px; height:100px; border-radius:50%; object-fit:cover;">\n`; }
-                else if(tag === 'link') { if(val) code += `<a href="${val}" target="_blank">連結</a><br>\n`; }
-                else if(tag === 'input') code += `<input type="text" placeholder="${val}">\n`;
-                else if(tag === 'checkbox') code += `<label><input type="checkbox"> ${val}</label><br>\n`;
-                else if(tag === 'select') code += `<select><option>選項 A</option><option>選項 B</option></select>\n`;
-                else if(tag === 'hr') code += `<hr>\n`;
-                else if(tag === 'progress') code += `<progress value="${val||50}" max="100"></progress>\n`;
-                else if(tag === 'video') code += `<div style="background:#000; color:#fff; width:200px; height:120px; display:flex; align-items:center; justify-content:center;">影片預覽</div>\n`;
-                else if(tag === 'marquee') code += `<marquee>${val||'Running...'}</marquee>\n`;
-                else if(tag === 'fun-rainbow') code += `<span style="background: linear-gradient(to right, red, orange, yellow, green, blue, violet); -webkit-background-clip: text; color: transparent; font-weight: bold;">${val}</span><br>\n`;
-                else if(tag === 'fun-neon') code += `<button style="background:#000; color:#0f0; border:2px solid #0f0; padding:10px 20px; box-shadow: 0 0 10px #0f0; text-transform:uppercase;">${val||'NEON'}</button>\n`;
-                else if(tag === 'fun-glass') code += `<div style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); padding:20px; border-radius:10px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-                else if(tag === 'fun-spin') code += `<div style="display:inline-block; animation: spin 2s linear infinite;">${val}</div>\n`;
-                else if(tag === 'fun-shake') code += `<div style="display:inline-block; animation: shake 0.5s infinite;">${val}</div>\n`;
-                else if(tag === 'fun-3d-btn') code += `<button style="background:#3b82f6; border:none; border-bottom:5px solid #1e3a8a; color:white; padding:10px 20px; border-radius:5px; font-weight:bold;">${val||'3D Button'}</button>\n`;
-                else if(tag === 'fun-spoiler') code += `<span style="background:black; color:black; padding:2px 5px; cursor:pointer;" onclick="this.style.color='white'; this.style.background='transparent'">${val}</span>\n`;
-                else if(tag === 'fun-typewriter') code += `<span style="font-family:monospace; border-right:2px solid #333; padding-right:5px;">${val}</span>\n`;
-                else if(tag === 'fun-gradient-box') code += `<div style="background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); padding:20px; border-radius:10px;">\n${crawlDOM(child.querySelector('.puzzle-container-inner'))}</div>\n`;
-            }
-            return code;
-        }
-
         function renderPuzzle() {
-            let root = document.getElementById('puzzle-root');
-            let htmlBody = crawlDOM(root);
-            let cssKeyframes = `
-                <style>
-                    body{font-family:'Inter',sans-serif; padding:20px; color:#333; line-height:1.6;}
-                    @keyframes spin { 100% { transform: rotate(360deg); } }
-                    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-                </style>
-            `;
-            let iframeDoc = document.getElementById('puzzle-result').contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(cssKeyframes + htmlBody);
-            iframeDoc.close();
+            let htmlBody = "<h1>歡迎使用貼貼碼</h1>";
+            document.getElementById('puzzle-result').contentWindow.document.open();
+            document.getElementById('puzzle-result').contentWindow.document.write(htmlBody);
+            document.getElementById('puzzle-result').contentWindow.document.close();
             document.getElementById('puzzle-source-display').value = htmlBody;
         }
     </script>
 
     <script type="module">
-        // --- Firebase 雲端功能與登入驗證 ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, 
-            doc, deleteDoc, updateDoc, increment, setDoc 
+            doc, deleteDoc, updateDoc, increment, setDoc, getDoc 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -733,75 +470,19 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            console.log("Firebase 連線成功 (雲端驗證版)");
         } catch(e) { console.error(e); }
 
-        // --- Firebase 管理員雲端驗證（只需輸入密碼，內部對應你的管理員信箱） ---
         window.verifyAdminPassword = async function() {
             let passwordInput = document.getElementById('admin-password-input').value;
             if(!passwordInput) return alert("請輸入密碼");
-
             try {
-                // 自動帶入你在 Firebase 建好的管理員信箱進行雲端登入驗證
                 await signInWithEmailAndPassword(auth, "leiwengsi@fatima.edu.mo", passwordInput);
-                
-                // 驗證成功
                 closeAdminAuth(); 
                 showPage('admin');
-            } catch(error) {
-                console.error(error);
-                alert("密碼錯誤或驗證失敗！");
-            }
+            } catch(error) { alert("密碼錯誤或驗證失敗！"); }
         };
 
-        // --- 廣告上傳 (Base64 方案) ---
-        window.uploadAndAddAdBase64 = function() {
-            const fileInput = document.getElementById('ad-img-file');
-            const file = fileInput.files[0];
-            const link = document.getElementById('ad-link-input').value;
-            const pos = document.getElementById('ad-pos-input').value;
-            
-            if(!file || !link) return alert("請選擇圖片並填寫連結");
-            if(file.size > 500 * 1024) return alert("圖片太大！請小於 500KB");
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const base64String = e.target.result;
-                try {
-                    await addDoc(collection(db, "ads"), { 
-                        img: base64String, link: link, pos: pos, timestamp: serverTimestamp() 
-                    });
-                    alert("廣告發布成功！");
-                    fileInput.value = '';
-                    document.getElementById('ad-link-input').value = '';
-                } catch(err) { alert("發布失敗：" + err.message); }
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // --- 同步廣告 ---
-        onSnapshot(collection(db, "ads"), (snapshot) => {
-            document.querySelectorAll('.ad-slot').forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
-            const adTable = document.querySelector('#ad-table tbody');
-            if(adTable) adTable.innerHTML = "";
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                const slot = document.getElementById('ad-pos-' + data.pos);
-                if(slot) {
-                    slot.style.display = "block";
-                    slot.innerHTML = `<a href="${data.link}" target="_blank"><img src="${data.img}" style="max-width:100%;border-radius:8px;"></a>`;
-                }
-                if(adTable) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${data.pos}</td><td><img src="${data.img}" style="height:40px; object-fit:cover;"></td><td><button class="btn-danger" onclick="delDoc('ads','${id}')">Del</button></td>`;
-                    adTable.appendChild(tr);
-                }
-            });
-        });
-
-        // --- 瀏覽次數與登入日誌 ---
+        // 訪客登入與計數
         const statsRef = doc(db, "stats", "main");
         onSnapshot(statsRef, (docSnap) => {
             if (docSnap.exists()) { document.getElementById('total-visits-display').innerText = docSnap.data().total_visits || 0; }
@@ -817,56 +498,112 @@
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
-            const logTable = document.querySelector('#log-table tbody');
-            if(!logTable) return;
-            logTable.innerHTML = "";
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                logTable.innerHTML += `<tr><td>${data.time}</td><td>${escapeHtml(data.name)}</td><td>${data.action}</td></tr>`;
-            });
-        });
+        // 學生與老師作品提交 (統一存入 pending_tools 進行審查)
+        window.userAddNewTool = async function() {
+            let role = document.getElementById('uploader-role').value;
+            let name = document.getElementById('new-tool-name').value.trim();
+            let code = document.getElementById('new-tool-code').value.trim();
+            let desc = document.getElementById('new-tool-desc').value.trim();
 
-        // --- 留言板 ---
-        onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
-            const list = document.getElementById('comments-list');
-            const adminTbody = document.querySelector('#admin-comments-table tbody');
-            if(list) list.innerHTML = "";
-            if(adminTbody) adminTbody.innerHTML = "";
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                let time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "";
-                if(list) {
-                    list.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><div style="font-weight:bold; color:#3b82f6;">${escapeHtml(data.name)} <span style="font-size:12px; color:#999;">(${time})</span></div><div style="margin-top:5px;">${escapeHtml(data.msg)}</div></div>`;
-                }
-                if(adminTbody) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.contact)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">Del</button></td>`;
-                    adminTbody.appendChild(tr);
-                }
-            });
-        });
-        window.submitComment = async function() {
-            const name = document.getElementById('gb-name').value;
-            const msg = document.getElementById('gb-msg').value;
-            const contact = document.getElementById('gb-contact').value;
-            if(!name || !msg) return alert("請填寫");
-            await addDoc(collection(db, "guestbook"), { name, msg, contact, timestamp: serverTimestamp() });
-            alert("留言已送出"); document.getElementById('gb-msg').value = "";
+            if(!name || !code) return alert("請填寫 HTML 名稱並提供代碼！");
+
+            let payload = {
+                role: role,
+                name: name,
+                code: code,
+                desc: desc || "無設計意念",
+                timestamp: serverTimestamp()
+            };
+
+            if(role === 'student') {
+                payload.schoolType = document.getElementById('stu-school-type').value;
+                payload.grade = document.getElementById('stu-grade').value;
+                payload.className = document.getElementById('stu-class-name').value;
+                payload.author = document.getElementById('stu-name').value.trim();
+                payload.studentId = document.getElementById('stu-id').value.trim();
+                if(!payload.author || !payload.studentId) return alert("請填寫學生姓名與學號！");
+            } else {
+                payload.author = document.getElementById('tea-name').value.trim();
+                if(!payload.author) return alert("請填寫老師姓名！");
+            }
+
+            try {
+                await addDoc(collection(db, "pending_tools"), payload);
+                alert("作品已成功提交，等待老師審查上架！");
+                document.getElementById('new-tool-name').value = "";
+                document.getElementById('new-tool-code').value = "";
+                document.getElementById('new-tool-desc').value = "";
+            } catch(err) { alert("提交失敗：" + err.message); }
         };
 
-        // --- 使用者自製工具 ---
+        // 審查清單即時同步
+        onSnapshot(query(collection(db, "pending_tools"), orderBy("timestamp", "desc")), (snapshot) => {
+            const tbody = document.querySelector('#review-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                let id = docSnap.id;
+                let info = data.role === 'student' ? `${data.schoolType} ${data.grade}年級${data.className}班 | 學號: ${data.studentId}` : `老師`;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="review-checkbox" value="${id}"></td>
+                    <td><b>[${data.role === 'student' ? '學生' : '老師'}]</b> ${escapeHtml(data.author)}</td>
+                    <td>${escapeHtml(info)}</td>
+                    <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">${escapeHtml(data.desc)}</small></td>
+                    <td>
+                        <button class="btn-success" onclick="approveTool('${id}')">通過審查</button>
+                        <button class="btn-danger" onclick="delDoc('pending_tools', '${id}')">拒絕刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+
+        // 單筆審查通過 (移至已發布 tools)
+        window.approveTool = async function(id) {
+            let docRef = doc(db, "pending_tools", id);
+            let snap = await getDoc(docRef);
+            if(snap.exists()) {
+                let data = snap.data();
+                await addDoc(collection(db, "tools"), {
+                    name: `${data.name} (${data.author})`,
+                    code: data.code,
+                    timestamp: serverTimestamp()
+                });
+                await deleteDoc(docRef);
+                alert("審查通過並已上架！");
+            }
+        };
+
+        // 全選與批量審查
+        window.toggleSelectAll = function(master) {
+            document.querySelectorAll('.review-checkbox').forEach(cb => cb.checked = master.checked);
+        };
+
+        window.batchApproveSelected = async function() {
+            let checkboxes = document.querySelectorAll('.review-checkbox:checked');
+            if(checkboxes.length === 0) return alert("請勾選要批量審查的作品！");
+            if(!confirm(`確定要批量上架這 ${checkboxes.length} 項作品嗎？`)) return;
+
+            for(let cb of checkboxes) {
+                await window.approveTool(cb.value);
+            }
+            alert("批量上架完成！");
+        };
+
+        // 已上架工具清單
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
             const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
             const adminToolsTable = document.querySelector('#tool-manage-table tbody');
             if(container) container.innerHTML = "";
             if(adminToolsTable) adminToolsTable.innerHTML = "";
+
             snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                const btn = document.createElement('button');
+                let data = docSnap.data();
+                let id = docSnap.id;
+                let btn = document.createElement('button');
                 btn.className = "nav-btn";
                 btn.innerHTML = `🔨 ${escapeHtml(data.name)}`;
                 btn.onclick = () => {
@@ -876,68 +613,73 @@
                         pageDiv = document.createElement('div');
                         pageDiv.id = 'page-' + id;
                         pageDiv.className = 'page-full';
-                        pageDiv.innerHTML = `<iframe class="tool-frame" style="width:100%;height:100%;border:none;" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999;">關閉</button>`;
+                        pageDiv.innerHTML = `<iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe><button onclick="document.getElementById('page-${id}').classList.remove('active')" style="position:absolute;top:10px;right:10px;z-index:999;">關閉</button>`;
                         pagesContainer.appendChild(pageDiv);
                     }
                     showPage('page-' + id);
                 };
                 container.appendChild(btn);
+
                 if(adminToolsTable) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">Del</button></td>`;
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>-</td><td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>`;
                     adminToolsTable.appendChild(tr);
                 }
             });
         });
-        window.userAddNewTool = async function() {
-            const name = document.getElementById('new-tool-name').value;
-            const code = document.getElementById('new-tool-code').value;
-            if(!name || !code) return alert("請填寫");
-            if(confirm("確定要發布嗎？")) {
-                await addDoc(collection(db, "tools"), { name, code, timestamp: serverTimestamp() });
-                alert("發布成功！");
-                document.getElementById('new-tool-name').value = "";
-            }
-        };
 
-        // --- 廣告申請 ---
-        onSnapshot(query(collection(db, "ad_requests"), orderBy("timestamp", "desc")), (snapshot) => {
-            const table = document.querySelector('#ad-req-table tbody');
-            if(!table) return;
-            table.innerHTML = "";
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                table.innerHTML += `<tr><td>${escapeHtml(data.company)}</td><td>${escapeHtml(data.contact)}</td><td>${data.bid}</td><td>${new Date(data.timestamp.toDate()).toLocaleDateString()}</td></tr>`;
+        // 留言板與日誌
+        onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
+            const list = document.getElementById('comments-list');
+            const adminTbody = document.querySelector('#admin-comments-table tbody');
+            if(list) list.innerHTML = "";
+            if(adminTbody) adminTbody.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                let id = docSnap.id;
+                if(list) list.innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px 0;"><b>${escapeHtml(data.name)}</b>: ${escapeHtml(data.msg)}</div>`;
+                if(adminTbody) {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.contact)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">Del</button></td>`;
+                    adminTbody.appendChild(tr);
+                }
             });
         });
-        window.submitAdRequest = async function() {
-             await addDoc(collection(db, "ad_requests"), { 
-                 company: document.getElementById('ad-req-company').value,
-                 contact: document.getElementById('ad-req-contact').value,
-                 bid: document.getElementById('ad-req-bid').value,
-                 timestamp: serverTimestamp() 
-             });
-             alert("申請已送出");
+
+        window.submitComment = async function() {
+            const name = document.getElementById('gb-name').value;
+            const msg = document.getElementById('gb-msg').value;
+            const contact = document.getElementById('gb-contact').value;
+            if(!name || !msg) return alert("請填寫");
+            await addDoc(collection(db, "guestbook"), { name, msg, contact, timestamp: serverTimestamp() });
+            alert("留言已送出"); document.getElementById('gb-msg').value = "";
         };
 
-        // --- 主頁編輯 ---
+        onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (snapshot) => {
+            const logTable = document.querySelector('#log-table tbody');
+            if(!logTable) return;
+            logTable.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                let data = docSnap.data();
+                logTable.innerHTML += `<tr><td>${data.time}</td><td>${escapeHtml(data.name)}</td><td>${data.action}</td></tr>`;
+            });
+        });
+
         const homeRef = doc(db, "site_content", "home_intro");
         onSnapshot(homeRef, (docSnap) => {
              if (docSnap.exists()) {
-                 const content = docSnap.data().html;
-                 document.getElementById('home-dynamic-content').innerHTML = content;
-                 document.getElementById('admin-home-editor').value = content;
+                 document.getElementById('home-dynamic-content').innerHTML = docSnap.data().html;
+                 document.getElementById('admin-home-editor').value = docSnap.data().html;
              }
         });
         window.saveHomeContent = async function() {
-             const val = document.getElementById('admin-home-editor').value;
-             await setDoc(homeRef, { html: val });
+             await setDoc(homeRef, { html: document.getElementById('admin-home-editor').value });
              alert("首頁內容已更新");
-        }
+        };
 
         window.delDoc = async function(col, id) {
             if(confirm("確定刪除?")) { await deleteDoc(doc(db, col, id)); }
-        }
+        };
 
         function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
         function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
