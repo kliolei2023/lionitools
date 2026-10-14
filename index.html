@@ -80,11 +80,6 @@
         .nav-btn:hover { background: rgba(255,255,255,0.04); color: #fff; }
         .nav-btn.active { background: var(--sidebar-active-bg); color: #818cf8; font-weight: 600; box-shadow: inset 3px 0 0 #4f46e5; }
 
-        .sub-nav-group { margin-left: 10px; border-left: 1px solid rgba(255,255,255,0.08); padding-left: 8px; display: none; }
-        .sub-nav-group.active { display: block; }
-        .nav-sub-btn { font-size: 13px; padding: 8px 10px; color: #94a3b8; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; border-radius: 6px; transition: var(--transition); display: flex; justify-content: space-between; align-items: center; }
-        .nav-sub-btn:hover { color: white; background: rgba(255,255,255,0.04); }
-
         #sidebar-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
             z-index: 90; display: none; transition: var(--transition);
@@ -324,13 +319,6 @@
 
                 <div class="nav-category">管理者</div>
                 <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒 後台管理</button>
-                
-                <div style="margin:16px 0; border-top:1px solid rgba(255,255,255,0.06);"></div>
-                <div class="nav-category">所有人的創作</div>
-                <div style="padding: 0 4px 8px 4px;">
-                    <input type="text" id="sidebar-tool-search" class="text-input" placeholder="🔍 搜尋作品或作者..." style="margin-bottom:0; font-size:12px; background:#1e293b; color:#fff; border:1px solid rgba(255,255,255,0.1);" oninput="filterDynamicNav(this.value)">
-                </div>
-                <div id="dynamic-nav-container"></div>
             </div>
 
             <div class="sidebar-footer" style="padding:16px 20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid rgba(255,255,255,0.06);">
@@ -710,7 +698,7 @@
         </div>
     </div>
 
-    <!-- 💡 將所有大廳與全域控制函式提升至全域 Window 範圍，確保 100% 點擊有效 -->
+    <!-- 💡 全域控制與大廳渲染函式 -->
     <script>
         let currentUserName = "訪客";
         let currentHubFilter = 'all';
@@ -799,13 +787,6 @@
             }
         }
 
-        function toggleSubNav(groupId) { document.getElementById(groupId)?.classList.toggle('active'); }
-        function filterDynamicNav(keyword) {
-            let kw = keyword.toLowerCase();
-            document.querySelectorAll('.nav-sub-btn').forEach(btn => {
-                btn.style.display = btn.innerText.toLowerCase().includes(kw) ? 'flex' : 'none';
-            });
-        }
         function globalQuickSearch(keyword) {
             if(!keyword) return;
             let kw = keyword.toLowerCase();
@@ -1367,7 +1348,6 @@
         };
 
         onSnapshot(query(collection(db, "tools"), orderBy("timestamp", "desc")), (snapshot) => {
-            const container = document.getElementById('dynamic-nav-container');
             const pagesContainer = document.getElementById('dynamic-pages');
             const adminToolsTable = document.querySelector('#tool-manage-table tbody');
             const leaderboardContainer = document.getElementById('leaderboard-list');
@@ -1376,12 +1356,8 @@
             
             let totalToolsCount = snapshot.size;
             document.getElementById('stat-total-tools').innerText = totalToolsCount;
-            if(container) container.innerHTML = "";
             if(adminToolsTable) adminToolsTable.innerHTML = "";
 
-            let teacherTools = [];
-            let middleSchoolTools = [];
-            let primarySchoolTools = [];
             let allToolsArray = [];
             let gradeCounts = { '1年級': 0, '2年級': 0, '3年級': 0, '4年級': 0, '5年級': 0, '6年級': 0 };
 
@@ -1403,10 +1379,6 @@
                     let gKey = grade + '年級';
                     if(gradeCounts[gKey] !== undefined) gradeCounts[gKey]++;
                 }
-
-                if (role === 'teacher') teacherTools.push({ id, ...data });
-                else if (schoolType === '中學') middleSchoolTools.push({ id, ...data });
-                else primarySchoolTools.push({ id, ...data });
 
                 if(adminToolsTable) {
                     let tr = document.createElement('tr');
@@ -1513,29 +1485,6 @@
                     leaderboardContainer.innerHTML = rankHtml;
                 }
             }
-
-            let teacherGroupHtml = '';
-            teacherTools.filter(t => t.isVisible !== false && t.role === 'teacher').forEach(t => { teacherGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)})</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
-
-            let middleGroupHtml = '';
-            middleSchoolTools.filter(t => t.isVisible !== false).forEach(t => { middleGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
-
-            let primaryGroupHtml = '';
-            primarySchoolTools.filter(t => t.isVisible !== false).forEach(t => { primaryGroupHtml += `<button class="nav-sub-btn" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')"><span>🔨 ${escapeHtml(t.name)} <br><small style="color:#64748b;">(${escapeHtml(t.author)} - ${t.grade}年級)</small></span><span style="font-size:11px; color:#64748b;">👁️${t.usageCount||0}</span></button>`; });
-
-            container.innerHTML = `
-                <button class="nav-btn" onclick="toggleSubNav('sub-teacher')">👨‍🏫 老師工具 (${teacherTools.filter(t=>t.isVisible!==false && t.role==='teacher').length})</button>
-                <div id="sub-teacher" class="sub-nav-group">${teacherGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無作品</div>'}</div>
-
-                <button class="nav-btn" onclick="toggleSubNav('sub-student')">📚 學生工具 (${middleSchoolTools.filter(t=>t.isVisible!==false).length + primarySchoolTools.filter(t=>t.isVisible!==false).length})</button>
-                <div id="sub-student" class="sub-nav-group">
-                    <button class="nav-sub-btn" onclick="toggleSubNav('sub-middle')" style="font-weight:600; color:#818cf8;">🏫 中學 (${middleSchoolTools.filter(t=>t.isVisible!==false).length})</button>
-                    <div id="sub-middle" class="sub-nav-group">${middleGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無中學作品</div>'}</div>
-
-                    <button class="nav-sub-btn" onclick="toggleSubNav('sub-primary')" style="font-weight:600; color:#818cf8; margin-top:4px;">🏫 小學 (${primarySchoolTools.filter(t=>t.isVisible!==false).length})</button>
-                    <div id="sub-primary" class="sub-nav-group">${primaryGroupHtml || '<div style="color:#64748b; font-size:12px; padding:6px;">暫無小學作品</div>'}</div>
-                </div>
-            `;
         });
 
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
