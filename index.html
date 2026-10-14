@@ -313,7 +313,7 @@
                 <div class="nav-category">一般</div>
                 <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
                 <!-- ✨ 作品探索中心 (大廳) -->
-                <button class="nav-btn" onclick="showPage('explore-hub')" style="color: #818cf8; font-weight: 600;">✨ 作品探索中心 (大廳)</button>
+                <button class="nav-btn" onclick="showPage('explore-hub')" style="color: #818cf8; font-weight: 600;">✨ 作品大廳</button>
                 <button class="nav-btn" onclick="showPage('announcements')">📢 佈公欄 (教材與通知)</button>
                 <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/許願板</button>
 
@@ -334,7 +334,7 @@
                     <div class="breadcrumb" id="header-breadcrumb">主頁 / <span>關於站主簡介</span></div>
                 </div>
                 <div class="header-right">
-                    <input type="text" class="global-search" placeholder="全局快速搜尋..." oninput="globalQuickSearch(this.value)">
+                    <input type="text" class="global-search" placeholder="快速搜尋..." oninput="globalQuickSearch(this.value)">
                     <div class="user-badge" id="current-user-badge">👤 訪客</div>
                 </div>
             </div>
@@ -375,12 +375,12 @@
                 <div class="card"><div id="home-dynamic-content">載入中...</div></div>
             </div>
 
-            <!-- ✨ 作品探索中心 (大廳) 頁面 -->
+            <!-- ✨ 作品大廳 頁面 -->
             <div id="explore-hub" class="page-padded">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                     <div>
-                        <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">✨ 作品探索中心 (大廳)</h1>
-                        <p style="color:#64748b; font-size:13px;">匯聚所有師生上架的網頁作品，支援海量累積與即時多維度篩選！</p>
+                        <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">✨ 作品大廳</h1>
+                        <p style="color:#64748b; font-size:13px;">匯聚所有師生上架作品</p>
                     </div>
                     <div style="width: 280px;">
                         <input type="text" id="hub-search-input" class="text-input" placeholder="🔍 在大廳中搜尋作品標題或作者..." style="margin-bottom:0;" oninput="renderExploreHub()">
@@ -390,8 +390,8 @@
                 <div class="filter-bar" id="hub-filter-bar">
                     <button class="filter-btn active" onclick="filterHubCategory('all')">全部作品</button>
                     <button class="filter-btn" onclick="filterHubCategory('teacher')">👨‍🏫 老師創作</button>
-                    <button class="filter-btn" onclick="filterHubCategory('中學')">🏫 中學學生</button>
-                    <button class="filter-btn" onclick="filterHubCategory('小學')">🏫 小學學生</button>
+                    <button class="filter-btn" onclick="filterHubCategory('中學')">🏫 中學學生創作</button>
+                    <button class="filter-btn" onclick="filterHubCategory('小學')">🏫 小學學生創作</button>
                 </div>
 
                 <div id="hub-cards-grid" class="hub-grid">
