@@ -151,6 +151,19 @@
         .page-full.active { display: block; }
         iframe.tool-frame { width: 100%; height: 100%; border: none; }
 
+        /* --- 大廳網格卡片樣式 --- */
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .hub-card {
+            background: white; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;
+            transition: var(--transition); cursor: pointer; position: relative;
+        }
+        .hub-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -3px rgba(0,0,0,0.08); border-color: var(--primary-color); }
+        .hub-card-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+        .hub-card-meta { font-size: 12px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .hub-card-desc { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .hub-card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 12px; font-size: 12px; color: #64748b; }
+
         /* --- 公告欄與標籤樣式 --- */
         .announcement-card { background: white; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
         .announcement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -304,6 +317,8 @@
 
                 <div class="nav-category">一般</div>
                 <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
+                <!-- ✨ 作品探索中心 (大廳) -->
+                <button class="nav-btn" onclick="showPage('explore-hub')" style="color: #818cf8; font-weight: 600;">✨ 作品探索中心 (大廳)</button>
                 <button class="nav-btn" onclick="showPage('announcements')">📢 佈公欄 (教材與通知)</button>
                 <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/許願板</button>
 
@@ -370,6 +385,30 @@
                 </div>
 
                 <div class="card"><div id="home-dynamic-content">載入中...</div></div>
+            </div>
+
+            <!-- ✨ 作品探索中心 (大廳) 頁面 -->
+            <div id="explore-hub" class="page-padded">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">✨ 作品探索中心 (大廳)</h1>
+                        <p style="color:#64748b; font-size:13px;">匯聚所有師生上架的網頁作品，支援海量累積與即時多維度篩選！</p>
+                    </div>
+                    <div style="width: 280px;">
+                        <input type="text" id="hub-search-input" class="text-input" placeholder="🔍 在大廳中搜尋作品標題或作者..." style="margin-bottom:0;" oninput="renderExploreHub()">
+                    </div>
+                </div>
+
+                <div class="filter-bar" id="hub-filter-bar">
+                    <button class="filter-btn active" onclick="filterHubCategory('all')">全部作品</button>
+                    <button class="filter-btn" onclick="filterHubCategory('teacher')">👨‍🏫 老師創作</button>
+                    <button class="filter-btn" onclick="filterHubCategory('中學')">🏫 中學學生</button>
+                    <button class="filter-btn" onclick="filterHubCategory('小學')">🏫 小學學生</button>
+                </div>
+
+                <div id="hub-cards-grid" class="hub-grid">
+                    <div style="color:#64748b; font-size:14px;">載入作品大廳中...</div>
+                </div>
             </div>
 
             <!-- 公布欄頁面 (含標籤過濾) -->
@@ -671,8 +710,12 @@
         </div>
     </div>
 
+    <!-- 💡 將所有大廳與全域控制函式提升至全域 Window 範圍，確保 100% 點擊有效 -->
     <script>
         let currentUserName = "訪客";
+        let currentHubFilter = 'all';
+        let allHubToolsData = [];
+        window.loadedToolsData = {};
 
         function showPage(pageId, titleText, toolId) {
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
@@ -681,6 +724,7 @@
             
             let breadcrumbTitle = titleText || pageId;
             if(pageId === 'home') breadcrumbTitle = "關於站主簡介";
+            else if(pageId === 'explore-hub') breadcrumbTitle = "作品探索中心 (大廳)";
             else if(pageId === 'announcements') breadcrumbTitle = "佈公欄";
             else if(pageId === 'guestbook') breadcrumbTitle = "留言/許願板";
             else if(pageId === 'translator') breadcrumbTitle = "代碼即打即有";
@@ -765,12 +809,77 @@
         function globalQuickSearch(keyword) {
             if(!keyword) return;
             let kw = keyword.toLowerCase();
-            if('佈公欄'.includes(kw) || '公告'.includes(kw)) showPage('announcements');
+            if('作品探索'.includes(kw) || '大廳'.includes(kw)) showPage('explore-hub');
+            else if('佈公欄'.includes(kw) || '公告'.includes(kw)) showPage('announcements');
             else if('新學貼貼碼'.includes(kw)) showPage('code-puzzle');
             else if('中文代碼'.includes(kw)) showPage('translator');
             else if('留言'.includes(kw)) showPage('guestbook');
             else if('簡介'.includes(kw)) showPage('home');
         }
+
+        // --- ✨ 作品探索中心 (大廳) 篩選與渲染全域函式 ---
+        window.filterHubCategory = function(cat) {
+            currentHubFilter = cat;
+            document.querySelectorAll('#hub-filter-bar .filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            window.renderExploreHub();
+        };
+
+        window.renderExploreHub = function() {
+            const gridContainer = document.getElementById('hub-cards-grid');
+            const searchKw = (document.getElementById('hub-search-input')?.value || '').toLowerCase();
+            if(!gridContainer) return;
+
+            gridContainer.innerHTML = "";
+
+            let filtered = allHubToolsData.filter(t => {
+                if(t.isVisible === false) return false;
+                
+                if(currentHubFilter === 'teacher' && t.role !== 'teacher') return false;
+                if(currentHubFilter === '中學' && (t.role === 'teacher' || t.schoolType !== '中學')) return false;
+                if(currentHubFilter === '小學' && (t.role === 'teacher' || t.schoolType !== '小學')) return false;
+
+                if(searchKw) {
+                    let matchName = (t.name || '').toLowerCase().includes(searchKw);
+                    let matchAuthor = (t.author || '').toLowerCase().includes(searchKw);
+                    if(!matchName && !matchAuthor) return false;
+                }
+                return true;
+            });
+
+            if(filtered.length === 0) {
+                gridContainer.innerHTML = `<div style="grid-column: 1 / -1; color:#64748b; text-align:center; padding: 40px; font-size:14px;">找不到符合條件的作品</div>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                let badgeHtml = t.role === 'teacher' 
+                    ? '<span class="tag-badge" style="background:#e0e7ff; color:#4f46e5;">👨‍🏫 老師創作</span>' 
+                    : `<span class="tag-badge" style="background:#d1fae5; color:#065f46;">🏫 ${escapeHtml(t.schoolType)} / ${t.grade}年級</span>`;
+
+                let card = document.createElement('div');
+                card.className = 'hub-card';
+                card.onclick = () => showPage('page-' + t.id, t.name, t.id);
+                card.innerHTML = `
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                            <div class="hub-card-title">${escapeHtml(t.name)}</div>
+                            ${badgeHtml}
+                        </div>
+                        <div class="hub-card-meta">
+                            <span>👤 作者：${escapeHtml(t.author)}</span>
+                            ${t.className ? `<span>🏷️ ${t.className}班</span>` : ''}
+                        </div>
+                        <div class="hub-card-desc">${escapeHtml(t.desc || '暫無設計意念說明...')}</div>
+                    </div>
+                    <div class="hub-card-footer">
+                        <span>👁️ ${t.usageCount || 0} 次使用</span>
+                        <span style="color:#ef4444;">❤️ ${t.likes || 0} 讚</span>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        };
 
         // --- 公告標籤過濾邏輯 ---
         let currentAnnouncementFilter = 'all';
@@ -779,7 +888,7 @@
         window.filterAnnouncements = function(tag) {
             currentAnnouncementFilter = tag;
             document.querySelectorAll('#announcement-filter-bar .filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
             renderAnnouncementsList();
         };
 
@@ -837,7 +946,7 @@
             document.querySelectorAll('.puzzle-cat-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.puzzle-cat-btn').forEach(el => el.classList.remove('active'));
             document.getElementById('pcat-'+cat).classList.add('active');
-            event?.currentTarget.classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
         }
 
         function dragNew(ev) { ev.dataTransfer.setData("type", ev.target.getAttribute('data-type')); }
@@ -968,6 +1077,9 @@
             iframeDoc.write(fullHtml);
             iframeDoc.close();
         }
+
+        function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
+        function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
     </script>
 
     <script type="module">
@@ -1026,7 +1138,6 @@
         };
         window.closeLogin = function() { window.handleLogin(); };
 
-        // --- 佈公欄多檔案發布與管理邏輯 ---
         window.postAnnouncement = async function() {
             let title = document.getElementById('admin-ann-title').value.trim();
             let content = document.getElementById('admin-ann-content').value.trim();
@@ -1104,7 +1215,9 @@
                 }
             });
 
-            renderAnnouncementsList();
+            if (typeof renderAnnouncementsList === 'function') {
+                renderAnnouncementsList();
+            }
         });
 
         window.userAddNewTool = async function() {
@@ -1228,8 +1341,6 @@
             alert("批量上架完成！");
         };
 
-        window.loadedToolsData = {};
-
         window.incrementToolUsage = async function(id) {
             try {
                 await updateDoc(doc(db, "tools", id), { usageCount: increment(1) });
@@ -1274,11 +1385,14 @@
             let allToolsArray = [];
             let gradeCounts = { '1年級': 0, '2年級': 0, '3年級': 0, '4年級': 0, '5年級': 0, '6年級': 0 };
 
+            allHubToolsData = [];
+
             snapshot.forEach((docSnap) => {
                 let data = docSnap.data();
                 let id = docSnap.id;
                 window.loadedToolsData[id] = data;
                 allToolsArray.push({ id, ...data });
+                allHubToolsData.push({ id, ...data });
                 
                 let role = data.role || "student";
                 let schoolType = data.schoolType || "中學";
@@ -1286,7 +1400,6 @@
                 let isVisible = data.isVisible !== false;
 
                 if (role === 'student') {
-                    teacherTools.push({ id, ...data }); // 暫時分類計數用
                     let gKey = grade + '年級';
                     if(gradeCounts[gKey] !== undefined) gradeCounts[gKey]++;
                 }
@@ -1334,7 +1447,11 @@
                 }
             });
 
-            // 渲染後台視覺化圖表：年級分佈
+            // 渲染探索中心大廳卡片
+            if (typeof window.renderExploreHub === 'function') {
+                window.renderExploreHub();
+            }
+
             if(gradeChartBars) {
                 let maxGradeCount = Math.max(...Object.values(gradeCounts), 1);
                 let htmlBars = '';
@@ -1352,7 +1469,6 @@
                 gradeChartBars.innerHTML = htmlBars;
             }
 
-            // 渲染後台視覺化圖表：熱門觀看排行
             if(popularChartBars) {
                 let topTools = [...allToolsArray].sort((a,b)=>(b.usageCount||0)-(a.usageCount||0)).slice(0,5);
                 let maxView = Math.max(...topTools.map(t=>t.usageCount||0), 1);
@@ -1422,13 +1538,6 @@
             `;
         });
 
-        window.updateToolCategory = async function(id) {
-            let role = document.getElementById(`role-edit-${id}`).value;
-            let schoolType = document.getElementById(`school-edit-${id}`).value;
-            let grade = document.getElementById(`grade-edit-${id}`).value;
-            try { await updateDoc(doc(db, "tools", id), { role, schoolType, grade }); } catch(e) { console.error(e); }
-        };
-
         onSnapshot(query(collection(db, "guestbook"), orderBy("timestamp", "desc")), (snapshot) => {
             const list = document.getElementById('comments-list');
             const adminTbody = document.querySelector('#admin-comments-table tbody');
@@ -1482,9 +1591,6 @@
         window.delDoc = async function(col, id) {
             if(confirm("確定要刪除此項目嗎？")) { await deleteDoc(doc(db, col, id)); }
         };
-
-        function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
-        function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
     </script>
 </body>
 </html>
