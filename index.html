@@ -19,19 +19,13 @@
         body { width: 100%; height: 100vh; overflow: hidden; background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif; }
 
         /* --- 彈窗與 Modal --- */
-        #login-screen, #admin-auth-screen, #preview-modal, #maintenance-modal {
+        #login-screen, #admin-auth-screen, #preview-modal {
             position: fixed; inset: 0; background: rgba(9, 13, 22, 0.8); 
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             display: flex; justify-content: center; align-items: center; z-index: 99999;
             animation: fadeIn 0.2s ease-out;
         }
-        #admin-auth-screen, #preview-modal, #maintenance-modal { display: none; } 
-        
-        /* 80%不半透明的維護提示遮罩 */
-        #maintenance-modal {
-            background: rgba(9, 13, 22, 0.95); /* 接近完全不透明 */
-            z-index: 999999;
-        }
+        #admin-auth-screen, #preview-modal { display: none; } 
 
         .login-box {
             background: rgba(255, 255, 255, 0.98); padding: 40px; border-radius: 16px; 
@@ -85,7 +79,6 @@
         }
         .nav-btn:hover { background: rgba(255,255,255,0.04); color: #fff; }
         .nav-btn.active { background: var(--sidebar-active-bg); color: #818cf8; font-weight: 600; box-shadow: inset 3px 0 0 #4f46e5; }
-        .nav-btn.disabled-feature { opacity: 0.4; cursor: not-allowed !important; }
 
         #sidebar-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
@@ -289,16 +282,6 @@
 
     <div id="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
-    <!-- 80%不半透明的維護提示彈窗 -->
-    <div id="maintenance-modal">
-        <div class="login-box" style="border: 2px solid var(--danger);">
-            <div style="font-size:36px; margin-bottom:12px;">⚠️</div>
-            <h2 style="color:var(--danger); font-weight: 700; margin-bottom: 8px;">維護中...</h2>
-            <p id="maintenance-error-msg" style="font-size:13px; color:#64748b; margin-bottom: 20px; line-height: 1.5;">作品大廳、上傳作品與留言板目前維護中暫停服務。您仍可正常使用代碼工廠與新學貼貼碼。</p>
-            <button class="btn-primary" onclick="closeMaintenanceModal()">確定</button>
-        </div>
-    </div>
-
     <div id="login-screen">
         <div class="login-box">
             <div class="close-login" onclick="closeLogin()">✕</div>
@@ -349,25 +332,24 @@
             </div>
             
             <div class="sidebar-content" id="sidebar-content-area">
-                <div class="nav-category">原有系統 (可用)</div>
+                <div class="nav-category">原有系統</div>
                 <button class="nav-btn" onclick="showPage('translator')">🌐 代碼即打即有</button>
                 <button class="nav-btn" onclick="showPage('code-puzzle')">🧩 新學貼貼碼 Code </button>
-                <!-- 停用功能按鈕 (數據爆了不可用) -->
-                <button class="nav-btn disabled-feature" id="nav-add-tool" onclick="alertRestricted()">➕ 上傳您製作的系統 (維護中)</button>
+                <button class="nav-btn" onclick="showPage('add-tool')">➕ 上傳您製作的系統</button>
 
                 <div class="nav-category">一般</div>
                 <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
-                <!-- ✨ 作品探索中心 (大廳) - 停用 -->
-                <button class="nav-btn disabled-feature" id="nav-explore" onclick="alertRestricted()" style="color: #818cf8; font-weight: 600;">✨ 作品大廳 (維護中)</button>
+                <!-- ✨ 作品探索中心 (大廳) -->
+                <button class="nav-btn" onclick="showPage('explore-hub')" style="color: #818cf8; font-weight: 600;">✨ 作品大廳</button>
                 <button class="nav-btn" onclick="showPage('announcements')">📢 佈公欄 (教材與通知)</button>
-                <button class="nav-btn disabled-feature" id="nav-guestbook" onclick="alertRestricted()">💬 留言/許願板 (維護中)</button>
+                <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/許願板</button>
 
                 <div class="nav-category">管理者</div>
                 <button class="nav-btn" id="btn-admin" onclick="openAdminAuth()">🔒 後台管理</button>
             </div>
 
             <div class="sidebar-footer" style="padding:16px 20px; text-align:center; color:#64748b; font-size:12px; border-top:1px solid rgba(255,255,255,0.06);">
-                <div style="margin-bottom:6px;"><button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="manualRefreshData()">🔄 刷新資料</button></div>
+                <button class="btn-primary" onclick="manualReloadData()" style="width: 100%; margin-bottom: 10px; font-size: 12px; padding: 6px 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1);">🔄 重新讀取</button>
                 <div>Total Visits: <span id="total-visits-display" style="color:white; font-weight:bold;">0</span></div>
                 <div style="margin-top:8px; opacity:0.5; font-size:10px;">{© 2026 李老師工具站}</div>
             </div>
@@ -414,25 +396,62 @@
                 <div class="card" style="margin-bottom: 24px;">
                     <h3 style="font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px;">🔥 熱門創作使用排行榜</h3>
                     <div id="leaderboard-list" style="display:flex; flex-direction:column; gap:8px;">
-                        <div style="color:#64748b; font-size:13px;">請按左下角「刷新資料」載入排行...</div>
+                        <div style="color:#64748b; font-size:13px;">載入中...</div>
                     </div>
                 </div>
 
                 <div class="card"><div id="home-dynamic-content">載入中...</div></div>
             </div>
 
-            <!-- ✨ 作品大廳 頁面 (維護中停用) -->
+            <!-- ✨ 作品大廳 頁面 (支援多種展示形式切換) -->
             <div id="explore-hub" class="page-padded">
-                <div style="text-align:center; padding: 60px;">
-                    <h1 style="font-size:28px; color:var(--danger); margin-bottom:12px;">⚠️ 作品大廳維護中</h1>
-                    <p style="color:#64748b;">因維護中，本區域暫停開放，「代碼工廠」或「新學貼貼碼」可使用。</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">✨ 作品大廳</h1>
+                        <p style="color:#64748b; font-size:13px;">匯聚所有師生上架作品，可自由切換瀏覽模式</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <!-- 展示形式切換按鈕 -->
+                        <div style="display: flex; gap: 2px; background: #e2e8f0; padding: 3px; border-radius: 8px;">
+                            <button id="vbtn-grid" class="view-btn active" onclick="switchHallLayout('grid')" style="border:none; background:white; padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600;">🀄 卡片</button>
+                            <button id="vbtn-list" class="view-btn" onclick="switchHallLayout('list')" style="border:none; background:transparent; padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; color:#64748b;">📋 列表</button>
+                            <button id="vbtn-tree" class="view-btn" onclick="switchHallLayout('tree')" style="border:none; background:transparent; padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; color:#64748b;">🌳 目錄</button>
+                            <button id="vbtn-timeline" class="view-btn" onclick="switchHallLayout('timeline')" style="border:none; background:transparent; padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; color:#64748b;">⏳ 時間軸</button>
+                        </div>
+                        <div style="width: 220px;">
+                            <input type="text" id="hub-search-input" class="text-input" placeholder="🔍 搜尋作品或作者..." style="margin-bottom:0;" oninput="currentHubPage=1; renderExploreHub()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-bar" id="hub-filter-bar" style="justify-content: space-between;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="filter-btn active" onclick="filterHubCategory('all')">全部作品</button>
+                        <button class="filter-btn" onclick="filterHubCategory('teacher')">👨‍🏫 老師創作</button>
+                        <button class="filter-btn" onclick="filterHubCategory('中學')">🏫 中學學生創作</button>
+                        <button class="filter-btn" onclick="filterHubCategory('小學')">🏫 小學學生創作</button>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #64748b;">排序：</span>
+                        <select id="hub-sort-select" class="select-input" style="width: auto; margin-bottom: 0; padding: 6px 12px; font-size: 12px;" onchange="currentHubPage=1; renderExploreHub()">
+                            <option value="latest">🕒 最新發布</option>
+                            <option value="popular">🔥 最多使用</option>
+                            <option value="likes">❤️ 最多點讚</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 動態渲染容器 -->
+                <div id="hub-content-container">
+                    <div style="color:#64748b; font-size:14px;">載入作品大廳中...</div>
                 </div>
             </div>
 
-            <!-- 公布欄頁面 -->
+            <!-- 公布欄頁面 (含標籤過濾) -->
             <div id="announcements" class="page-padded">
                 <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">📢 佈公欄 (課程內容與課後通知)</h1>
-                <p style="color:#64748b; margin-bottom:16px; font-size:13px;">這裡提供老師發布的多檔案教材與重要通知。</p>
+                <p style="color:#64748b; margin-bottom:16px; font-size:13px;">這裡提供老師發布的多檔案教材與重要通知，可透過下方標籤一鍵過濾尋找。</p>
                 
                 <div class="filter-bar" id="announcement-filter-bar">
                     <button class="filter-btn active" onclick="filterAnnouncements('all')">全部公告</button>
@@ -443,15 +462,18 @@
                 </div>
 
                 <div id="announcements-container">
-                    <div style="color:#64748b; font-size:14px;">請點擊「刷新資料」讀取公告...</div>
+                    <div style="color:#64748b; font-size:14px;">載入公告中...</div>
                 </div>
             </div>
 
-            <!-- 留言板 (維護中停用) -->
             <div id="guestbook" class="page-padded">
-                <div style="text-align:center; padding: 60px;">
-                    <h1 style="font-size:28px; color:var(--danger); margin-bottom:12px;">⚠️ 留言板維護中</h1>
-                    <p style="color:#64748b;">暫停接受新留言與許願。</p>
+                <h1 style="font-weight:700; margin-bottom:20px; font-size:24px;">留言板與系統許願</h1>
+                <div class="card">
+                    <input type="text" id="gb-name" class="text-input" placeholder="您的稱呼">
+                    <input type="text" id="gb-contact" class="text-input" placeholder="聯絡方法 (Email / LINE)">
+                    <textarea id="gb-msg" class="text-input" style="height:100px;" placeholder="寫下您的留言或功能建議..."></textarea>
+                    <button class="btn-primary" onclick="submitComment()">送出留言</button>
+                    <div id="comments-list" style="margin-top:24px;"></div>
                 </div>
             </div>
 
@@ -535,11 +557,48 @@
                 </div>
             </div>
 
-            <!-- 上傳系統創作 (維護中停用) -->
             <div id="add-tool" class="page-padded">
-                <div style="text-align:center; padding: 60px;">
-                    <h1 style="font-size:28px; color:var(--danger); margin-bottom:12px;">⚠️ 上傳功能維護中</h1>
-                    <p style="color:#64748b;">目前暫停接收新作品上傳。</p>
+                <h1 style="font-weight:700; margin-bottom:4px; font-size:24px;">上傳系統創作</h1>
+                <p style="font-size:13px; color:var(--danger); margin-bottom:16px;">注意：所有提交均需經後台審查核准後才會公開上傳給所有人！</p>
+                <div class="card" style="max-width: 800px;">
+                    <label style="font-weight:600; display:block; margin-bottom:8px;">1. 選擇上傳身分：</label>
+                    <select id="uploader-role" class="select-input" onchange="toggleRoleForm()">
+                        <option value="student">學生工具</option>
+                        <option value="teacher">老師工具</option>
+                    </select>
+
+                    <div id="student-form-fields" style="display:block; margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px;">
+                        <label style="font-size:12px; color:#64748b;">校別：</label>
+                        <select id="stu-school-type" class="select-input">
+                            <option value="中學">中學</option>
+                            <option value="小學">小學</option>
+                        </select>
+                        <label style="font-size:12px; color:#64748b;">年級 (1-6)：</label>
+                        <select id="stu-grade" class="select-input">
+                            <option value="1">1 年級</option><option value="2">2 年級</option><option value="3">3 年級</option>
+                            <option value="4">4 年級</option><option value="5">5 年級</option><option value="6">6 年級</option>
+                        </select>
+                        <label style="font-size:12px; color:#64748b;">班別：</label>
+                        <select id="stu-class-name" class="select-input">
+                            <option value="敬">敬</option><option value="靜">靜</option><option value="恒">恒</option>
+                            <option value="毅">毅</option><option value="愛">愛</option><option value="望">望</option>
+                        </select>
+                        <input type="text" id="stu-name" class="text-input" placeholder="學生姓名" style="margin-top:10px;">
+                        <input type="text" id="stu-id" class="text-input" placeholder="學號">
+                    </div>
+
+                    <div id="teacher-form-fields" style="display:none; margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px;">
+                        <input type="text" id="tea-name" class="text-input" placeholder="老師姓名">
+                    </div>
+
+                    <div style="margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px;">
+                        <div onclick="document.getElementById('file-uploader').click()" style="border:2px dashed #cbd5e1; padding:20px; text-align:center; cursor:pointer; margin-bottom:12px; border-radius:8px; background:#f8fafc; transition:var(--transition);">📂 點此上傳 HTML 檔案</div>
+                        <input type="file" id="file-uploader" hidden onchange="processFile(this)">
+                        <input type="text" id="new-tool-name" class="text-input" placeholder="HTML 名稱 (作品標題)">
+                        <textarea id="new-tool-desc" class="text-input" style="height:80px;" placeholder="設計意念 (請填寫設計意念)"></textarea>
+                        <textarea id="new-tool-code" class="text-input" style="height:120px; font-family:monospace;" placeholder="HTML 原始碼"></textarea>
+                        <button class="btn-primary" onclick="userAddNewTool()">提交審查</button>
+                    </div>
                 </div>
             </div>
 
@@ -564,11 +623,11 @@
                         <div class="chart-container">
                             <div class="chart-card">
                                 <h4 style="font-size:14px; margin-bottom:12px; color:#475569;">📚 各年級學生作品上傳分佈</h4>
-                                <div id="grade-chart-bars">請手動點擊「刷新資料」載入</div>
+                                <div id="grade-chart-bars">載入中...</div>
                             </div>
                             <div class="chart-card">
                                 <h4 style="font-size:14px; margin-bottom:12px; color:#475569;">🔥 熱門作品觀看次數排行 (Top 5)</h4>
-                                <div id="popular-chart-bars">請手動點擊「刷新資料」載入</div>
+                                <div id="popular-chart-bars">載入中...</div>
                             </div>
                         </div>
                     </div>
@@ -584,7 +643,7 @@
                     </div>
                 </div>
 
-                <!-- 佈公欄後台管理 -->
+                <!-- 佈公欄後台管理 (支援多檔案) -->
                 <div id="tab-announcements" class="admin-section">
                     <div class="card" style="margin-bottom:24px; border:2px dashed var(--primary-color);">
                         <h3 style="margin-bottom:16px; font-weight:600; color:var(--primary-color);">➕ 發布新公告與多檔案教材</h3>
@@ -611,7 +670,7 @@
 
                         <textarea id="admin-ann-content" class="text-input" style="height:90px;" placeholder="公告內容或說明文字..."></textarea>
                         
-                        <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">上傳多個附件檔案：</label>
+                        <label style="font-size:12px; color:#64748b; display:block; margin-bottom:4px;">上傳多個附件檔案（可按住 Ctrl 鍵複選多個檔案）：</label>
                         <input type="file" id="admin-ann-files" class="text-input" style="padding:6px;" multiple>
                         
                         <button class="btn-primary" onclick="postAnnouncement()" style="margin-top:8px;">發布公告</button>
@@ -673,7 +732,7 @@
 
                 <div id="tab-tools" class="admin-section">
                     <div class="card">
-                        <h3 style="margin-bottom:16px; font-weight:600;">已上架工具管理</h3>
+                        <h3 style="margin-bottom:16px; font-weight:600;">已上架工具管理 (可隱藏/顯示、查看原始碼)</h3>
                         <div style="max-height:500px; overflow-y:auto;">
                             <table id="tool-manage-table">
                                 <thead><tr><th>作品名稱 / 作者</th><th>目前狀態</th><th>修改分類 / Status</th><th>操作</th></tr></thead>
@@ -688,40 +747,29 @@
         </div>
     </div>
 
-    <!-- 💡 全域控制與手動讀取函式 -->
+    <!-- 💡 全域控制與多模式大廳渲染函式 -->
     <script>
         let currentUserName = "訪客";
         let currentHubFilter = 'all';
-        let currentHallLayout = 'grid';
+        let currentHallLayout = 'grid'; // 預設模式：grid (卡片), list (列表), tree (目錄), timeline (時間軸)
         let currentHubPage = 1;
         const pageSize = 12;
         let allHubToolsData = [];
         window.loadedToolsData = {};
 
-        function alertRestricted() {
-            document.getElementById('maintenance-error-msg').innerText = "數據額度已滿或連線失敗，作品大廳、上傳作品與留言板目前暫停服務。您仍可正常使用代碼工廠與新學貼貼碼。";
-            document.getElementById('maintenance-modal').style.display = 'flex';
-        }
-        function closeMaintenanceModal() {
-            document.getElementById('maintenance-modal').style.display = 'none';
-        }
-
         function showPage(pageId, titleText, toolId) {
-            // 限制不可用的頁面
-            if(['explore-hub', 'add-tool', 'guestbook'].includes(pageId)) {
-                alertRestricted();
-                return;
-            }
-
             document.querySelectorAll('.page-padded, .page-full').forEach(p => p.classList.remove('active'));
             const target = document.getElementById(pageId);
             if(target) target.classList.add('active');
             
             let breadcrumbTitle = titleText || pageId;
             if(pageId === 'home') breadcrumbTitle = "關於站主簡介";
+            else if(pageId === 'explore-hub') breadcrumbTitle = "作品探索中心 (大廳)";
             else if(pageId === 'announcements') breadcrumbTitle = "佈公欄";
+            else if(pageId === 'guestbook') breadcrumbTitle = "留言/許願板";
             else if(pageId === 'translator') breadcrumbTitle = "代碼即打即有";
             else if(pageId === 'code-puzzle') breadcrumbTitle = "新學貼貼碼";
+            else if(pageId === 'add-tool') breadcrumbTitle = "上傳系統創作";
             else if(pageId === 'admin') breadcrumbTitle = "後台管理";
             document.getElementById('header-breadcrumb').innerHTML = `主頁 / <span>${breadcrumbTitle}</span>`;
 
@@ -753,7 +801,25 @@
             event.currentTarget.classList.add('active');
         }
 
+        function toggleRoleForm() {
+            let role = document.getElementById('uploader-role').value;
+            if(role === 'student') {
+                document.getElementById('student-form-fields').style.display = 'block';
+                document.getElementById('teacher-form-fields').style.display = 'none';
+            } else {
+                document.getElementById('student-form-fields').style.display = 'none';
+                document.getElementById('teacher-form-fields').style.display = 'block';
+            }
+        }
+
         function updateCompilerPreview() { document.getElementById('trans-preview').srcdoc = document.getElementById('trans-input').value; }
+        function processFile(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('new-tool-code').value = e.target.result; };
+            reader.readAsText(file);
+        }
 
         function openPreviewModal(title, code) {
             document.getElementById('preview-title').innerText = "預覽作品：" + title;
@@ -776,25 +842,225 @@
         function globalQuickSearch(keyword) {
             if(!keyword) return;
             let kw = keyword.toLowerCase();
-            if('新學貼貼碼'.includes(kw)) showPage('code-puzzle');
+            if('作品探索'.includes(kw) || '大廳'.includes(kw)) showPage('explore-hub');
+            else if('佈公欄'.includes(kw) || '公告'.includes(kw)) showPage('announcements');
+            else if('新學貼貼碼'.includes(kw)) showPage('code-puzzle');
             else if('中文代碼'.includes(kw)) showPage('translator');
+            else if('留言'.includes(kw)) showPage('guestbook');
             else if('簡介'.includes(kw)) showPage('home');
         }
 
+        // --- 切換展示版面模式函式 ---
+        window.switchHallLayout = function(layout) {
+            currentHallLayout = layout;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.style.background = 'transparent';
+                btn.style.color = '#64748b';
+                btn.style.fontWeight = '500';
+            });
+            let activeBtn = document.getElementById('vbtn-' + layout);
+            if(activeBtn) {
+                activeBtn.style.background = 'white';
+                activeBtn.style.color = 'var(--text-main)';
+                activeBtn.style.fontWeight = '600';
+            }
+            renderExploreHub();
+        };
+
+        window.filterHubCategory = function(cat) {
+            currentHubFilter = cat;
+            currentHubPage = 1;
+            document.querySelectorAll('#hub-filter-bar .filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            window.renderExploreHub();
+        };
+
+        window.renderExploreHub = function() {
+            const container = document.getElementById('hub-content-container');
+            const searchKw = (document.getElementById('hub-search-input')?.value || '').toLowerCase();
+            const sortType = document.getElementById('hub-sort-select')?.value || 'latest';
+            if(!container) return;
+
+            container.innerHTML = "";
+
+            let filtered = allHubToolsData.filter(t => {
+                if(t.isVisible === false) return false;
+                
+                if(currentHubFilter === 'teacher' && t.role !== 'teacher') return false;
+                if(currentHubFilter === '中學' && (t.role === 'teacher' || t.schoolType !== '中學')) return false;
+                if(currentHubFilter === '小學' && (t.role === 'teacher' || t.schoolType !== '小學')) return false;
+
+                if(searchKw) {
+                    let matchName = (t.name || '').toLowerCase().includes(searchKw);
+                    let matchAuthor = (t.author || '').toLowerCase().includes(searchKw);
+                    if(!matchName && !matchAuthor) return false;
+                }
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortType === 'popular') return (b.usageCount || 0) - (a.usageCount || 0);
+                if (sortType === 'likes') return (b.likes || 0) - (a.likes || 0);
+                return (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0);
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div style="color:#64748b; text-align:center; padding: 40px; font-size:14px;">找不到符合條件的作品</div>`;
+                return;
+            }
+
+            // === 模式 A：經典網格 (Grid) ===
+            if(currentHallLayout === 'grid') {
+                let gridDiv = document.createElement('div');
+                gridDiv.className = 'hub-grid';
+                let paginated = filtered.slice(0, currentHubPage * pageSize);
+
+                paginated.forEach(t => {
+                    let badgeHtml = t.role === 'teacher' 
+                        ? '<span class="tag-badge" style="background:#e0e7ff; color:#4f46e5;">👨‍🏫 老師</span>' 
+                        : `<span class="tag-badge" style="background:#d1fae5; color:#065f46;">🏫 ${escapeHtml(t.schoolType)}${t.grade}年</span>`;
+                    let emojiIcon = t.name.includes('計時') ? '⏱️' : (t.name.includes('計算') ? '🔢' : '💻');
+
+                    let card = document.createElement('div');
+                    card.className = 'hub-card';
+                    card.onclick = () => showPage('page-' + t.id, t.name, t.id);
+                    card.innerHTML = `
+                        <div class="hub-card-header-banner">${emojiIcon}</div>
+                        <div class="hub-card-body">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <div class="hub-card-title">${escapeHtml(t.name)}</div>
+                                ${badgeHtml}
+                            </div>
+                            <div class="hub-card-meta">
+                                <span>👤 ${escapeHtml(t.author)}</span>
+                                ${t.className ? `<span>🏷️ ${t.className}班</span>` : ''}
+                            </div>
+                            <div class="hub-card-desc">${escapeHtml(t.desc || '暫無設計意念說明...')}</div>
+                        </div>
+                        <div class="hub-card-footer">
+                            <span>👁️ ${t.usageCount || 0} 次使用</span>
+                            <span style="color:#ef4444; font-weight:600;">❤️ ${t.likes || 0}</span>
+                        </div>
+                    `;
+                    gridDiv.appendChild(card);
+                });
+                container.appendChild(gridDiv);
+
+                if (filtered.length > currentHubPage * pageSize) {
+                    let loadMore = document.createElement('div');
+                    loadMore.style.cssText = "text-align: center; margin-top: 20px;";
+                    loadMore.innerHTML = `<button class="btn-primary" onclick="currentHubPage++; renderExploreHub();" style="padding: 10px 24px;">👇 顯示更多作品</button>`;
+                    container.appendChild(loadMore);
+                }
+            }
+            
+            // === 模式 B：簡約列表 (List) ===
+            else if(currentHallLayout === 'list') {
+                let listDiv = document.createElement('div');
+                listDiv.className = 'hub-list-wrapper';
+
+                filtered.forEach(t => {
+                    let item = document.createElement('div');
+                    item.className = 'hub-list-item';
+                    item.onclick = () => showPage('page-' + t.id, t.name, t.id);
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <span style="font-size: 20px;">💻</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">${escapeHtml(t.name)}</div>
+                                <div style="font-size: 12px; color: #64748b;">作者：${escapeHtml(t.author)} ${t.className ? '('+t.className+'班)' : ''} | 🏷️ ${t.role === 'teacher' ? '老師創作' : t.schoolType+'/'+t.grade+'年級'}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 16px; font-size: 12px; color: #64748b;">
+                            <span>👁️ ${t.usageCount || 0} 次</span>
+                            <span style="color: #ef4444; font-weight: 600;">❤️ ${t.likes || 0} 讚</span>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+                container.appendChild(listDiv);
+            }
+
+            // === 模式 C：檔案總管目錄 (Tree View) ===
+            else if(currentHallLayout === 'tree') {
+                let treeDiv = document.createElement('div');
+                treeDiv.className = 'hub-tree-wrapper';
+
+                let groups = { '老師創作': [], '中學學生創作': [], '小學學生創作': [] };
+                filtered.forEach(t => {
+                    if(t.role === 'teacher') groups['老師創作'].push(t);
+                    else if(t.schoolType === '中學') groups['中學學生創作'].push(t);
+                    else groups['小學學生創作'].push(t);
+                });
+
+                for(let groupName in groups) {
+                    if(groups[groupName].length === 0) continue;
+                    let folderBox = document.createElement('div');
+                    folderBox.className = 'tree-folder';
+                    
+                    let itemsHtml = `<div class="tree-items-grid">`;
+                    groups[groupName].forEach(t => {
+                        itemsHtml += `
+                            <div class="tree-item-card" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')">
+                                <div style="font-weight:600; margin-bottom:4px;">📄 ${escapeHtml(t.name)}</div>
+                                <div style="font-size:11px; color:#64748b;">👤 ${escapeHtml(t.author)} | ❤️ ${t.likes || 0}</div>
+                            </div>
+                        `;
+                    });
+                    itemsHtml += `</div>`;
+
+                    folderBox.innerHTML = `
+                        <div class="tree-folder-title">📁 ${groupName} (${groups[groupName].length})</div>
+                        ${itemsHtml}
+                    `;
+                    treeDiv.appendChild(folderBox);
+                }
+                container.appendChild(treeDiv);
+            }
+
+            // === 模式 D：時間軸 (Timeline) ===
+            else if(currentHallLayout === 'timeline') {
+                let timeDiv = document.createElement('div');
+                timeDiv.className = 'hub-timeline-wrapper';
+
+                filtered.forEach(t => {
+                    let node = document.createElement('div');
+                    node.className = 'timeline-node';
+                    node.onclick = () => showPage('page-' + t.id, t.name, t.id);
+                    node.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:700; font-size:14px; color:var(--text-main);">${escapeHtml(t.name)}</span>
+                            <span style="font-size:11px; color:var(--primary-color); font-weight:600;">👤 ${escapeHtml(t.author)}</span>
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-bottom:6px;">${escapeHtml(t.desc || '無設計意念')}</div>
+                        <div style="font-size:11px; color:#94a3b8; display:flex; gap:12px;">
+                            <span>👁️ ${t.usageCount || 0} 次使用</span>
+                            <span>❤️ ${t.likes || 0} 讚</span>
+                        </div>
+                    `;
+                    timeDiv.appendChild(node);
+                });
+                container.appendChild(timeDiv);
+            }
+        };
+
+        // --- 公告標籤過濾邏輯 ---
+        let currentAnnouncementFilter = 'all';
         let allAnnouncementsData = [];
 
         window.filterAnnouncements = function(tag) {
+            currentAnnouncementFilter = tag;
             document.querySelectorAll('#announcement-filter-bar .filter-btn').forEach(btn => btn.classList.remove('active'));
             if(event && event.currentTarget) event.currentTarget.classList.add('active');
-            renderAnnouncementsList(tag);
+            renderAnnouncementsList();
         };
 
-        function renderAnnouncementsList(tagFilter = 'all') {
+        function renderAnnouncementsList() {
             const frontContainer = document.getElementById('announcements-container');
             if(!frontContainer) return;
             frontContainer.innerHTML = "";
 
-            let filtered = allAnnouncementsData.filter(item => tagFilter === 'all' || item.tag === tagFilter);
+            let filtered = allAnnouncementsData.filter(item => currentAnnouncementFilter === 'all' || item.tag === currentAnnouncementFilter);
 
             if(filtered.length === 0) {
                 frontContainer.innerHTML = `<div style="color:#64748b; font-size:14px;">此分類目前尚無公告或教材</div>`;
@@ -979,7 +1245,6 @@
         function escapeHtmlAttribute(text) { return text ? text.replace(/"/g, "&quot;") : ""; }
     </script>
 
-    <!-- Firebase 邏輯：已取消 onValue 即時長駐監聽，改為手動 getDoc / getDocs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { 
@@ -1005,160 +1270,6 @@
             auth = getAuth(app);
         } catch(e) { console.error(e); }
 
-        const statsRef = doc(db, "stats", "main");
-        const homeRef = doc(db, "site_content", "home_intro");
-
-        // 手動讀取一次數據核心函式 (每次按重整或網頁載入時執行)
-        window.manualRefreshData = async function() {
-            try {
-                // 1. 讀取統計數據
-                let statsSnap = await getDoc(statsRef);
-                if (statsSnap.exists()) {
-                    let visits = statsSnap.data().total_visits || 0;
-                    document.getElementById('total-visits-display').innerText = visits;
-                    document.getElementById('stat-total-visits').innerText = visits;
-                }
-
-                // 2. 讀取公告
-                let annSnap = await getDocs(query(collection(db, "announcements"), orderBy("timestamp", "desc")));
-                allAnnouncementsData = [];
-                const adminAnnTbody = document.querySelector('#admin-announcement-table tbody');
-                if(adminAnnTbody) adminAnnTbody.innerHTML = "";
-                
-                annSnap.forEach(docSnap => {
-                    let data = docSnap.data();
-                    let id = docSnap.id;
-                    allAnnouncementsData.push({ id, ...data });
-                    if(adminAnnTbody) {
-                        let permText = data.permission === 'download' ? '<span style="color:#10b981; font-weight:600;">📥 可下載</span>' : '<span style="color:#f59e0b; font-weight:600;">👀 僅查看</span>';
-                        let tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><b>${escapeHtml(data.title)}</b><br><small style="color:var(--primary-color);">#${escapeHtml(data.tag || '課程簡報')}</small></td>
-                            <td>${permText}</td>
-                            <td>${(data.files && data.files.length) || 0} 個檔案</td>
-                            <td><button class="btn-danger" onclick="delDoc('announcements', '${id}')">刪除</button></td>
-                        `;
-                        adminAnnTbody.appendChild(tr);
-                    }
-                });
-                renderAnnouncementsList();
-
-                // 3. 讀取已發布工具
-                let toolsSnap = await getDocs(query(collection(db, "tools"), orderBy("timestamp", "desc")));
-                const pagesContainer = document.getElementById('dynamic-pages');
-                const adminToolsTable = document.querySelector('#tool-manage-table tbody');
-                const leaderboardContainer = document.getElementById('leaderboard-list');
-                const gradeChartBars = document.getElementById('grade-chart-bars');
-                const popularChartBars = document.getElementById('popular-chart-bars');
-                
-                document.getElementById('stat-total-tools').innerText = toolsSnap.size;
-                if(adminToolsTable) adminToolsTable.innerHTML = "";
-
-                let allToolsArray = [];
-                let gradeCounts = { '1年級': 0, '2年級': 0, '3年級': 0, '4年級': 0, '5年級': 0, '6年級': 0 };
-
-                toolsSnap.forEach((docSnap) => {
-                    let data = docSnap.data();
-                    let id = docSnap.id;
-                    window.loadedToolsData[id] = data;
-                    allToolsArray.push({ id, ...data });
-                    
-                    let role = data.role || "student";
-                    let grade = data.grade || "1";
-                    let isVisible = data.isVisible !== false;
-
-                    if (role === 'student') {
-                        let gKey = grade + '年級';
-                        if(gradeCounts[gKey] !== undefined) gradeCounts[gKey]++;
-                    }
-
-                    if(adminToolsTable) {
-                        let tr = document.createElement('tr');
-                        let statusBadge = isVisible ? '<span style="color:#10b981; font-weight:600;">👁️ 顯示中</span>' : '<span style="color:#ef4444; font-weight:600;">🙈 已隱藏</span>';
-                        let toggleBtnText = isVisible ? '隱藏作品' : '顯示作品';
-                        let toggleBtnClass = isVisible ? 'btn-danger' : 'btn-success';
-
-                        tr.innerHTML = `
-                            <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">作者：${escapeHtml(data.author)} | 觀看:${data.usageCount || 0} | 讚:${data.likes || 0}</small></td>
-                            <td>${statusBadge}</td>
-                            <td>
-                                <button class="${toggleBtnClass}" onclick="toggleToolVisibility('${id}', ${isVisible})" style="margin-bottom:4px;">${toggleBtnText}</button><br>
-                                <button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(data.name)}', window.loadedToolsData['${id}'].code)" style="margin-bottom:4px;">查看原始碼</button>
-                            </td>
-                            <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>
-                        `;
-                        adminToolsTable.appendChild(tr);
-                    }
-
-                    let pageDiv = document.getElementById('page-' + id);
-                    if(!pageDiv) {
-                        pageDiv = document.createElement('div');
-                        pageDiv.id = 'page-' + id;
-                        pageDiv.className = 'page-full';
-                        pageDiv.innerHTML = `
-                            <div class="mac-window-controls">
-                                <button class="like-action-btn" onclick="likeTool('${id}', event)">❤️ 點讚 (<span id="like-count-${id}">${data.likes || 0}</span>)</button>
-                                <button class="mac-btn mac-close" title="關閉預覽" onclick="document.getElementById('page-${id}').classList.remove('active')"></button>
-                                <button class="mac-btn mac-minimize" title="顯示作者與年級" onclick="alert('作者：${escapeHtml(data.author)}\\n身分：${data.role==='teacher'?'老師':(data.schoolType+' / '+data.grade+'年級')}');"></button>
-                                <button class="mac-btn mac-maximize" title="顯示作品意念" onclick="alert('作品意念：\\n${escapeHtml(data.desc || '無設計意念')}');"></button>
-                            </div>
-                            <iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
-                        `;
-                        pagesContainer.appendChild(pageDiv);
-                    }
-                });
-
-                // 4. 讀取留言數
-                let gbSnap = await getDocs(query(collection(db, "guestbook"), orderBy("timestamp", "desc")));
-                document.getElementById('stat-total-comments').innerText = gbSnap.size;
-                const adminGbTbody = document.querySelector('#admin-comments-table tbody');
-                if(adminGbTbody) adminGbTbody.innerHTML = "";
-                gbSnap.forEach(docSnap => {
-                    let d = docSnap.data();
-                    let id = docSnap.id;
-                    if(adminGbTbody) {
-                        adminGbTbody.innerHTML += `<tr><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.contact)}</td><td>${escapeHtml(d.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">刪除</button></td></tr>`;
-                    }
-                });
-
-                // 5. 讀取主頁編輯內容
-                let homeSnap = await getDoc(homeRef);
-                if (homeSnap.exists()) {
-                    document.getElementById('home-dynamic-content').innerHTML = homeSnap.data().html;
-                    document.getElementById('admin-home-editor').value = homeSnap.data().html;
-                }
-
-                // 6. 圖表與排行榜渲染
-                if(leaderboardContainer) {
-                    let sortedTools = [...allToolsArray].filter(t => t.isVisible !== false).sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, 5);
-                    let rankHtml = '';
-                    let medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-                    sortedTools.forEach((t, index) => {
-                        rankHtml += `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; cursor:pointer;" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <span style="font-size:16px;">${medals[index]}</span>
-                                    <div>
-                                        <div style="font-weight:600; font-size:13px;">${escapeHtml(t.name)}</div>
-                                        <div style="font-size:11px; color:#64748b;">作者：${escapeHtml(t.author)}</div>
-                                    </div>
-                                </div>
-                                <div style="font-size:12px; color:#64748b;">👁️ ${t.usageCount || 0} 次</div>
-                            </div>
-                        `;
-                    });
-                    leaderboardContainer.innerHTML = rankHtml || '<div style="color:#64748b;">尚無資料</div>';
-                }
-
-                alert("資料重新整理成功！");
-            } catch(error) {
-                // 數據爆了讀取不到時，彈出不半透明的 80% 警示提防
-                console.error(error);
-                document.getElementById('maintenance-error-msg').innerText = "數據額度已滿或讀取失敗：「" + error.message + "」。作品大廳、上傳作品與留言板目前無法使用，只有代碼工廠與貼貼碼可用。";
-                document.getElementById('maintenance-modal').style.display = 'flex';
-            }
-        };
-
         window.verifyAdminPassword = async function() {
             let passwordInput = document.getElementById('admin-password-input').value;
             if(!passwordInput) return alert("請輸入密碼");
@@ -1166,7 +1277,42 @@
                 await signInWithEmailAndPassword(auth, "leiwengsi@fatima.edu.mo", passwordInput);
                 closeAdminAuth(); 
                 showPage('admin', '後台管理');
+                loadAllData();
             } catch(error) { alert("驗證失敗：" + error.message); }
+        };
+
+        const statsRef = doc(db, "stats", "main");
+
+        // 一次性讀取所有資料 (取代原本的 onValue 實時監聽)
+        async function loadAllData() {
+            try {
+                let statsSnap = await getDoc(statsRef);
+                if (statsSnap.exists()) { 
+                    let visits = statsSnap.data().total_visits || 0;
+                    document.getElementById('total-visits-display').innerText = visits;
+                    document.getElementById('stat-total-visits').innerText = visits;
+                }
+
+                await loadAnnouncements();
+                await loadPendingTools();
+                await loadTools();
+                await loadGuestbook();
+                await loadLogs();
+
+                let homeSnap = await getDoc(homeRef);
+                if (homeSnap.exists()) {
+                    document.getElementById('home-dynamic-content').innerHTML = homeSnap.data().html;
+                    document.getElementById('admin-home-editor').value = homeSnap.data().html;
+                }
+            } catch (err) {
+                console.error("載入資料失敗: ", err);
+            }
+        }
+
+        // 綁定給左下角按鈕的手動重新讀取
+        window.manualReloadData = async function() {
+            await loadAllData();
+            alert("🔄 資料已成功重新讀取！");
         };
 
         window.handleLogin = async function() {
@@ -1177,11 +1323,9 @@
             try {
                 await addDoc(collection(db, "logs"), { action: "登入系統", name: name, time: new Date().toLocaleString(), timestamp: serverTimestamp() });
                 await updateDoc(statsRef, { total_visits: increment(1) });
-            } catch(e) { 
-                try { await setDoc(statsRef, { total_visits: 1 }); } catch(err) {}
-            }
-            // 登入或提交後手動讀取一次
-            manualRefreshData();
+            } catch(e) { await setDoc(statsRef, { total_visits: 1 }); }
+            
+            loadAllData();
         };
         window.closeLogin = function() { window.handleLogin(); };
 
@@ -1203,7 +1347,11 @@
                     let file = files[i];
                     let reader = new FileReader();
                     reader.onload = async function(e) {
-                        filesArray.push({ name: file.name, data: e.target.result, type: file.type });
+                        filesArray.push({
+                            name: file.name,
+                            data: e.target.result,
+                            type: file.type
+                        });
                         processedCount++;
                         if(processedCount === files.length) {
                             await saveAnnouncementToDB(title, content, tag, permission, filesArray);
@@ -1219,16 +1367,183 @@
         async function saveAnnouncementToDB(title, content, tag, permission, filesArray) {
             try {
                 await addDoc(collection(db, "announcements"), {
-                    title: title, content: content, tag: tag, permission: permission,
-                    files: filesArray, timeStr: new Date().toLocaleString(), timestamp: serverTimestamp()
+                    title: title,
+                    content: content,
+                    tag: tag,
+                    permission: permission,
+                    files: filesArray,
+                    timeStr: new Date().toLocaleString(),
+                    timestamp: serverTimestamp()
                 });
-                alert("公告發布成功！已更新最新狀態。");
+                alert("公告發布成功！");
                 document.getElementById('admin-ann-title').value = "";
                 document.getElementById('admin-ann-content').value = "";
                 document.getElementById('admin-ann-files').value = "";
-                manualRefreshData(); // 提交後手動讀取最新狀態
+                
+                loadAnnouncements();
             } catch(e) { alert("發布失敗：" + e.message); }
         }
+
+        async function loadAnnouncements() {
+            const adminTbody = document.querySelector('#admin-announcement-table tbody');
+            if(adminTbody) adminTbody.innerHTML = "";
+            allAnnouncementsData = [];
+
+            let q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+            let snapshot = await getDocs(q);
+
+            snapshot.forEach(docSnap => {
+                let data = docSnap.data();
+                let id = docSnap.id;
+                allAnnouncementsData.push({ id, ...data });
+
+                let permText = data.permission === 'download' ? '<span style="color:#10b981; font-weight:600;">📥 可下載</span>' : '<span style="color:#f59e0b; font-weight:600;">👀 僅查看</span>';
+
+                if(adminTbody) {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${escapeHtml(data.title)}</b><br><small style="color:var(--primary-color);">#${escapeHtml(data.tag || '課程簡報')}</small></td>
+                        <td>${permText}</td>
+                        <td>${(data.files && data.files.length) || 0} 個檔案</td>
+                        <td><button class="btn-danger" onclick="delDoc('announcements', '${id}')">刪除</button></td>
+                    `;
+                    adminTbody.appendChild(tr);
+                }
+            });
+
+            if (typeof renderAnnouncementsList === 'function') {
+                renderAnnouncementsList();
+            }
+        }
+
+        window.userAddNewTool = async function() {
+            let role = document.getElementById('uploader-role').value;
+            let name = document.getElementById('new-tool-name').value.trim();
+            let code = document.getElementById('new-tool-code').value.trim();
+            let desc = document.getElementById('new-tool-desc').value.trim();
+
+            if(!name || !code) return alert("請填寫 HTML 名稱並提供代碼！");
+
+            let payload = {
+                role: role,
+                name: name,
+                code: code,
+                desc: desc || "無設計意念",
+                isVisible: true,
+                likes: 0,
+                usageCount: 0,
+                timestamp: serverTimestamp()
+            };
+
+            if(role === 'student') {
+                payload.schoolType = document.getElementById('stu-school-type').value;
+                payload.grade = document.getElementById('stu-grade').value;
+                payload.className = document.getElementById('stu-class-name').value;
+                payload.author = document.getElementById('stu-name').value.trim();
+                payload.studentId = document.getElementById('stu-id').value.trim();
+                if(!payload.author || !payload.studentId) return alert("請填寫學生姓名與學號！");
+            } else {
+                payload.author = document.getElementById('tea-name').value.trim();
+                if(!payload.author) return alert("請填寫老師姓名！");
+            }
+
+            try {
+                await addDoc(collection(db, "pending_tools"), payload);
+                alert("作品已成功提交，等待老師審查上架！");
+                document.getElementById('new-tool-name').value = "";
+                document.getElementById('new-tool-code').value = "";
+                document.getElementById('new-tool-desc').value = "";
+                
+                loadPendingTools();
+            } catch(err) { alert("提交失敗：" + err.message); }
+        };
+
+        async function loadPendingTools() {
+            const tbody = document.querySelector('#review-table tbody');
+            let q = query(collection(db, "pending_tools"), orderBy("timestamp", "desc"));
+            let snapshot = await getDocs(q);
+            
+            let count = snapshot.size;
+            document.getElementById('stat-pending-tools').innerText = count;
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            
+            let docs = [];
+            snapshot.forEach(docSnap => { docs.push({ id: docSnap.id, ...docSnap.data() }); });
+            
+            docs.forEach((data) => {
+                let id = data.id;
+                let categoryLabel = data.role === 'teacher' ? '<span style="color:#4f46e5; font-weight:bold;">👨‍🏫 老師</span>' : `<span style="color:#10b981; font-weight:bold;">📚 學生 (${data.schoolType}/${data.grade}年級)</span>`;
+                let info = data.role === 'student' ? `${data.schoolType} | ${data.grade}年級${data.className}班` : `老師專屬`;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="review-checkbox" value="${id}"></td>
+                    <td>${categoryLabel}</td>
+                    <td><b>${escapeHtml(data.author)}</b></td>
+                    <td>${escapeHtml(info)}</td>
+                    <td><b>${escapeHtml(data.name)}</b></td>
+                    <td><button class="btn-primary preview-btn" data-id="${id}">🔍 預覽</button></td>
+                    <td>
+                        <button class="btn-success approve-btn" data-id="${id}">通過</button>
+                        <button class="btn-danger delete-btn" data-id="${id}">刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                let item = docs.find(d => d.id === id);
+                if(item) btn.onclick = () => openPreviewModal(item.name, item.code);
+            });
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                btn.onclick = () => approveTool(id);
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                let id = btn.getAttribute('data-id');
+                btn.onclick = () => delDoc('pending_tools', id);
+            });
+        }
+
+        window.approveTool = async function(id) {
+            let docRef = doc(db, "pending_tools", id);
+            let snap = await getDoc(docRef);
+            if(snap.exists()) {
+                let data = snap.data();
+                await addDoc(collection(db, "tools"), {
+                    role: data.role || "student",
+                    schoolType: data.schoolType || "中學",
+                    grade: data.grade || "1",
+                    className: data.className || "",
+                    author: data.author || "未知",
+                    name: data.name,
+                    code: data.code,
+                    desc: data.desc || "無設計意念",
+                    isVisible: true,
+                    likes: data.likes || 0,
+                    usageCount: data.usageCount || 0,
+                    timestamp: serverTimestamp()
+                });
+                await deleteDoc(docRef);
+                
+                loadPendingTools();
+                loadTools();
+            }
+        };
+
+        window.toggleSelectAll = function(master) {
+            document.querySelectorAll('.review-checkbox').forEach(cb => cb.checked = master.checked);
+        };
+
+        window.batchApproveSelected = async function() {
+            let checkboxes = document.querySelectorAll('.review-checkbox:checked');
+            if(checkboxes.length === 0) return alert("請勾選要批量審查的作品！");
+            if(!confirm(`確定要批量上架這 ${checkboxes.length} 項作品嗎？`)) return;
+
+            for(let cb of checkboxes) { await window.approveTool(cb.value); }
+            alert("批量上架完成！");
+        };
 
         window.incrementToolUsage = async function(id) {
             try {
@@ -1245,35 +1560,222 @@
             try {
                 await updateDoc(doc(db, "tools", id), { likes: increment(1) });
                 localStorage.setItem(likedKey, 'true');
-                alert("❤️ 點讚成功！");
-                manualRefreshData();
+                alert("❤️ 點讚成功！感謝您的鼓勵！");
+                loadTools();
             } catch(e) { alert("點讚失敗：" + e.message); }
         };
 
         window.toggleToolVisibility = async function(id, currentStatus) {
             try {
                 await updateDoc(doc(db, "tools", id), { isVisible: !currentStatus });
-                manualRefreshData();
+                loadTools();
             } catch(e) { alert("更新狀態失敗：" + e.message); }
         };
+
+        async function loadTools() {
+            const pagesContainer = document.getElementById('dynamic-pages');
+            const adminToolsTable = document.querySelector('#tool-manage-table tbody');
+            const leaderboardContainer = document.getElementById('leaderboard-list');
+            const gradeChartBars = document.getElementById('grade-chart-bars');
+            const popularChartBars = document.getElementById('popular-chart-bars');
+            
+            let q = query(collection(db, "tools"), orderBy("timestamp", "desc"));
+            let snapshot = await getDocs(q);
+
+            let totalToolsCount = snapshot.size;
+            document.getElementById('stat-total-tools').innerText = totalToolsCount;
+            if(adminToolsTable) adminToolsTable.innerHTML = "";
+
+            let allToolsArray = [];
+            let gradeCounts = { '1年級': 0, '2年級': 0, '3年級': 0, '4年級': 0, '5年級': 0, '6年級': 0 };
+
+            allHubToolsData = [];
+
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                let id = docSnap.id;
+                window.loadedToolsData[id] = data;
+                allToolsArray.push({ id, ...data });
+                allHubToolsData.push({ id, ...data });
+                
+                let role = data.role || "student";
+                let schoolType = data.schoolType || "中學";
+                let grade = data.grade || "1";
+                let isVisible = data.isVisible !== false;
+
+                if (role === 'student') {
+                    let gKey = grade + '年級';
+                    if(gradeCounts[gKey] !== undefined) gradeCounts[gKey]++;
+                }
+
+                if(adminToolsTable) {
+                    let tr = document.createElement('tr');
+                    let statusBadge = isVisible ? '<span style="color:#10b981; font-weight:600;">👁️ 顯示中</span>' : '<span style="color:#ef4444; font-weight:600;">🙈 已隱藏</span>';
+                    let toggleBtnText = isVisible ? '隱藏作品' : '顯示作品';
+                    let toggleBtnClass = isVisible ? 'btn-danger' : 'btn-success';
+
+                    tr.innerHTML = `
+                        <td><b>${escapeHtml(data.name)}</b><br><small style="color:#64748b;">作者：${escapeHtml(data.author)} | 觀看:${data.usageCount || 0} | 讚:${data.likes || 0}</small></td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="${toggleBtnClass}" onclick="toggleToolVisibility('${id}', ${isVisible})" style="margin-bottom:4px;">${toggleBtnText}</button><br>
+                            <button class="btn-primary" onclick="openPreviewModal('${escapeHtmlAttribute(data.name)}', window.loadedToolsData['${id}'].code)" style="margin-bottom:4px;">查看原始碼</button>
+                        </td>
+                        <td><button class="btn-danger" onclick="delDoc('tools', '${id}')">下架刪除</button></td>
+                    `;
+                    adminToolsTable.appendChild(tr);
+                }
+
+                let pageDiv = document.getElementById('page-' + id);
+                if(!pageDiv) {
+                    pageDiv = document.createElement('div');
+                    pageDiv.id = 'page-' + id;
+                    pageDiv.className = 'page-full';
+                    pageDiv.innerHTML = `
+                        <div class="mac-window-controls">
+                            <button class="like-action-btn" onclick="likeTool('${id}', event)">❤️ 點讚 (<span id="like-count-${id}">${data.likes || 0}</span>)</button>
+                            <button class="mac-btn mac-close" title="關閉預覽" onclick="document.getElementById('page-${id}').classList.remove('active')"></button>
+                            <button class="mac-btn mac-minimize" title="顯示作者與年級" onclick="alert('作者：${escapeHtml(data.author)}\\n身分：${data.role==='teacher'?'老師':(data.schoolType+' / '+data.grade+'年級')}');"></button>
+                            <button class="mac-btn mac-maximize" title="顯示作品意念" onclick="alert('作品意念：\\n${escapeHtml(data.desc || '無設計意念')}');"></button>
+                        </div>
+                        <iframe class="tool-frame" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
+                    `;
+                    pagesContainer.appendChild(pageDiv);
+                } else {
+                    let likeSpan = pageDiv.querySelector(`#like-count-${id}`);
+                    if(likeSpan) likeSpan.innerText = data.likes || 0;
+                }
+            });
+
+            if (typeof window.renderExploreHub === 'function') {
+                window.renderExploreHub();
+            }
+
+            if(gradeChartBars) {
+                let maxGradeCount = Math.max(...Object.values(gradeCounts), 1);
+                let htmlBars = '';
+                for(let g in gradeCounts) {
+                    let count = gradeCounts[g];
+                    let pct = (count / maxGradeCount) * 100;
+                    htmlBars += `
+                        <div class="bar-chart-row">
+                            <div class="bar-label">${g}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                            <div class="bar-value">${count} 篇</div>
+                        </div>
+                    `;
+                }
+                gradeChartBars.innerHTML = htmlBars;
+            }
+
+            if(popularChartBars) {
+                let topTools = [...allToolsArray].sort((a,b)=>(b.usageCount||0)-(a.usageCount||0)).slice(0,5);
+                let maxView = Math.max(...topTools.map(t=>t.usageCount||0), 1);
+                let popHtml = '';
+                topTools.forEach(t => {
+                    let pct = ((t.usageCount||0) / maxView) * 100;
+                    popHtml += `
+                        <div class="bar-chart-row">
+                            <div class="bar-label" style="width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width: ${pct}%; background:#10b981;"></div></div>
+                            <div class="bar-value">${t.usageCount||0} 次</div>
+                        </div>
+                    `;
+                });
+                popularChartBars.innerHTML = popHtml || '<div style="color:#64748b; font-size:12px;">尚無數據</div>';
+            }
+
+            if(leaderboardContainer) {
+                let sortedTools = [...allToolsArray].filter(t => t.isVisible !== false).sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, 5);
+                if(sortedTools.length === 0) {
+                    leaderboardContainer.innerHTML = `<div style="color:#64748b; font-size:13px;">目前尚無上架作品</div>`;
+                } else {
+                    let rankHtml = '';
+                    sortedTools.forEach((t, index) => {
+                        let medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+                        rankHtml += `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; cursor:pointer; transition:var(--transition);" onclick="showPage('page-${t.id}', '${escapeHtml(t.name)}', '${t.id}')">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-size:16px;">${medals[index]}</span>
+                                    <div>
+                                        <div style="font-weight:600; font-size:13px; color:var(--text-main);">${escapeHtml(t.name)}</div>
+                                        <div style="font-size:11px; color:#64748b;">作者：${escapeHtml(t.author)}</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:12px; font-size:12px; color:#64748b;">
+                                    <span>👁️ ${t.usageCount || 0} 次使用</span>
+                                    <span>❤️ ${t.likes || 0} 讚</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    leaderboardContainer.innerHTML = rankHtml;
+                }
+            }
+        }
+
+        async function loadGuestbook() {
+            let q = query(collection(db, "guestbook"), orderBy("timestamp", "desc"));
+            let snapshot = await getDocs(q);
+
+            const list = document.getElementById('comments-list');
+            const adminTbody = document.querySelector('#admin-comments-table tbody');
+            let totalComments = snapshot.size;
+            document.getElementById('stat-total-comments').innerText = totalComments;
+            if(list) list.innerHTML = "";
+            if(adminTbody) adminTbody.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                let id = docSnap.id;
+                if(list) list.innerHTML += `<div style="border-bottom:1px solid var(--border-color); padding:12px 0;"><b>${escapeHtml(data.name)}</b>: ${escapeHtml(data.msg)}</div>`;
+                if(adminTbody) {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${escapeHtml(data.name)}</td><td>${escapeHtml(data.contact)}</td><td>${escapeHtml(data.msg)}</td><td><button class="btn-danger" onclick="delDoc('guestbook','${id}')">刪除</button></td>`;
+                    adminTbody.appendChild(tr);
+                }
+            });
+        }
+
+        window.submitComment = async function() {
+            const name = document.getElementById('gb-name').value;
+            const msg = document.getElementById('gb-msg').value;
+            const contact = document.getElementById('gb-contact').value;
+            if(!name || !msg) return alert("請填寫稱呼與留言內容！");
+            await addDoc(collection(db, "guestbook"), { name, msg, contact, timestamp: serverTimestamp() });
+            alert("留言已成功送出！"); 
+            document.getElementById('gb-msg').value = "";
+            
+            loadGuestbook();
+        };
+
+        async function loadLogs() {
+            let q = query(collection(db, "logs"), orderBy("timestamp", "desc"));
+            let snapshot = await getDocs(q);
+            const logTable = document.querySelector('#log-table tbody');
+            if(!logTable) return;
+            logTable.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                let data = docSnap.data();
+                logTable.innerHTML += `<tr><td>${data.time}</td><td>${escapeHtml(data.name)}</td><td>${data.action}</td></tr>`;
+            });
+        }
+
+        const homeRef = doc(db, "site_content", "home_intro");
 
         window.saveHomeContent = async function() {
              await setDoc(homeRef, { html: document.getElementById('admin-home-editor').value });
              alert("首頁內容已成功更新！");
-             manualRefreshData();
+             loadAllData();
         };
 
         window.delDoc = async function(col, id) {
             if(confirm("確定要刪除此項目嗎？")) { 
                 await deleteDoc(doc(db, col, id)); 
-                manualRefreshData();
+                loadAllData();
             }
         };
 
-        // 頁面初次載入執行一次手動讀取
-        window.addEventListener('DOMContentLoaded', () => {
-            manualRefreshData();
-        });
+        loadAllData();
     </script>
 </body>
 </html>
