@@ -339,7 +339,6 @@
 
                 <div class="nav-category">一般</div>
                 <button class="nav-btn active" onclick="showPage('home')">🏠 關於站主簡介</button>
-                <!-- ✨ 作品探索中心 (大廳) -->
                 <button class="nav-btn" onclick="showPage('explore-hub')" style="color: #818cf8; font-weight: 600;">✨ 作品大廳</button>
                 <button class="nav-btn" onclick="showPage('announcements')">📢 佈公欄 (教材與通知)</button>
                 <button class="nav-btn" onclick="showPage('guestbook')">💬 留言/許願板</button>
@@ -392,7 +391,6 @@
                     </div>
                 </div>
 
-                <!-- 熱門使用排行榜區塊 -->
                 <div class="card" style="margin-bottom: 24px;">
                     <h3 style="font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px;">🔥 熱門創作使用排行榜</h3>
                     <div id="leaderboard-list" style="display:flex; flex-direction:column; gap:8px;">
@@ -755,11 +753,10 @@
         let currentHubFilter = 'all';
         let currentHallLayout = 'grid'; 
         let currentHubPage = 1;
-        const pageSize = 5; // 修改為每頁顯示 5 個作品
+        const pageSize = 5; 
         let allHubToolsData = [];
         window.loadedToolsData = {};
 
-        // 安全字串轉義函式（完美支援預防 XSS 與單/雙引號脫逸）
         function escapeHtml(text) { 
             return text ? String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;") : ""; 
         }
@@ -796,7 +793,6 @@
             if(window.innerWidth <= 1024) toggleMobileSidebar();
         }
 
-        // 安全開啓動態作品頁面（傳址呼叫，不懼任何引號）
         window.openToolPage = function(id) {
             let t = window.loadedToolsData[id] || allHubToolsData.find(x => x.id === id);
             let name = t ? t.name : id;
@@ -1333,13 +1329,12 @@
                 closeAdminAuth(); 
                 showPage('admin', '後台管理');
                 loadAdminDashboardData();
-            } catch(error) { alert("維護中...稍後才可使用"); }
+            } catch(error) { alert("密碼錯誤或系統維護中"); }
         };
 
         const statsRef = doc(db, "stats", "main");
         const homeRef = doc(db, "site_content", "home_intro");
 
-        // 頁面初始化：精準取得已上架工具的真實數量 (isVisible != false)
         async function initAppMinimal() {
             try {
                 let statsSnap = await getDoc(statsRef);
@@ -1355,7 +1350,6 @@
                     document.getElementById('admin-home-editor').value = homeSnap.data().html;
                 }
 
-                // 精準計算已上架且未隱藏的工具數量
                 try {
                     const toolsColl = collection(db, "tools");
                     const qActive = query(toolsColl, where("isVisible", "!=", false));
@@ -1368,7 +1362,6 @@
                     document.getElementById('stat-total-tools').innerText = activeCount;
                 }
 
-                // 載入首頁熱門排行
                 await loadHomeLeaderboard();
             } catch (err) {
                 console.error("初始化載入失敗: ", err);
@@ -1384,7 +1377,7 @@
                 await initAppMinimal();
                 alert("🔄 資料已成功重新讀取！");
             } catch(err) {
-                alert("維護中...稍後才可使用");
+                alert("重新讀取失敗，請確認網路連線");
             } finally {
                 if(btn) btn.innerText = originalText;
             }
@@ -1432,7 +1425,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // 當點擊進入作品大廳時才載入
         window.loadExploreHubData = async function() {
             const container = document.getElementById('hub-content-container');
             if(allHubToolsData.length > 0) { renderExploreHub(); return; }
@@ -1535,7 +1527,7 @@
                 document.getElementById('admin-ann-content').value = "";
                 document.getElementById('admin-ann-files').value = "";
                 loadAnnouncements();
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("發布失敗，請稍後再試"); }
         }
 
         window.loadAnnouncements = async function() {
@@ -1600,15 +1592,16 @@
                 document.getElementById('new-tool-name').value = "";
                 document.getElementById('new-tool-code').value = "";
                 document.getElementById('new-tool-desc').value = "";
-            } catch(err) { alert("維護中...稍後才可使用"); }
+            } catch(err) { alert("提交失敗，請稍後再試"); }
         };
 
+        // 💡 優化後的 loadPendingTools：加入 limit 限制，避免一次讀取過多造成卡頓
         window.loadPendingTools = async function() {
             const tbody = document.querySelector('#review-table tbody');
             if(!tbody) return;
             tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#64748b;'>載入中...</td></tr>";
             try {
-                let q = query(collection(db, "pending_tools"), orderBy("timestamp", "desc"));
+                let q = query(collection(db, "pending_tools"), orderBy("timestamp", "desc"), limit(20));
                 let snapshot = await getDocs(q);
                 
                 document.getElementById('stat-pending-tools').innerText = snapshot.size;
@@ -1655,7 +1648,10 @@
                     let id = btn.getAttribute('data-id');
                     btn.onclick = () => delDocAndReload('pending_tools', id, loadPendingTools);
                 });
-            } catch(e) { console.error(e); }
+            } catch(e) {
+                console.error("載入待審查作品失敗:", e);
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:var(--danger);'>載入失敗，請確認 Firebase 索引設定或網路狀態</td></tr>";
+            }
         };
 
         window.approveTool = async function(id) {
@@ -1675,7 +1671,7 @@
                     loadPendingTools();
                     initAppMinimal(); 
                 }
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("操作失敗，請稍後再試"); }
         };
 
         window.toggleSelectAll = function(master) {
@@ -1690,7 +1686,7 @@
             try {
                 for(let cb of checkboxes) { await window.approveTool(cb.value); }
                 alert("批量上架完成！");
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("批量上架失敗"); }
         };
 
         window.incrementToolUsage = async function(id) {
@@ -1708,7 +1704,7 @@
                 localStorage.setItem(likedKey, 'true');
                 alert("❤️ 點讚成功！感謝您的鼓勵！");
                 loadTools();
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("點讚失敗"); }
         };
 
         window.toggleToolVisibility = async function(id, currentStatus) {
@@ -1716,7 +1712,7 @@
                 await updateDoc(doc(db, "tools", id), { isVisible: !currentStatus });
                 loadTools();
                 initAppMinimal(); 
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("更新狀態失敗"); }
         };
 
         window.loadTools = async function() {
@@ -1761,7 +1757,6 @@
             } catch(e) { console.error(e); }
         };
 
-        // --- 留言板分頁變數 ---
         let lastCommentVisible = null;
         window.loadGuestbookFirstTime = async function() {
             const list = document.getElementById('comments-list');
@@ -1844,7 +1839,7 @@
                 document.getElementById('gb-msg').value = "";
                 loadGuestbookFirstTime();
             } catch(e) {
-                alert("維護中...稍後才可使用");
+                alert("送出留言失敗");
             }
         };
 
@@ -1931,7 +1926,7 @@
                 if (homeSnap.exists()) {
                     document.getElementById('home-dynamic-content').innerHTML = homeSnap.data().html;
                 }
-            } catch(e) { alert("維護中...稍後才可使用"); }
+            } catch(e) { alert("儲存失敗"); }
         };
 
         window.delDocAndReload = async function(col, id, reloadCallback) {
@@ -1939,7 +1934,7 @@
                 try {
                     await deleteDoc(doc(db, col, id)); 
                     if(typeof reloadCallback === 'function') reloadCallback();
-                } catch(e) { alert("維護中...稍後才可使用"); }
+                } catch(e) { alert("刪除失敗"); }
             }
         };
 
