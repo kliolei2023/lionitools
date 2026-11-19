@@ -318,7 +318,7 @@
                 <button class="btn-secondary" onclick="switchPreviewMode('code')">💻 原始碼檢視</button>
             </div>
             <div style="flex:1; border:1px solid var(--border-color); border-radius:8px; overflow:hidden; position:relative;">
-                <iframe id="modal-iframe" style="width:100%; height:100%; border:none; display:block;"></iframe>
+                <iframe id="modal-iframe" allow="camera; microphone" style="width:100%; height:100%; border:none; display:block;"></iframe>
                 <textarea id="modal-textarea" style="width:100%; height:100%; border:none; display:none; padding:15px; font-family:monospace; background:#0f172a; color:#38bdf8;" readonly></textarea>
             </div>
         </div>
@@ -480,7 +480,7 @@
                 <h1 style="font-weight:700; margin-bottom:20px; font-size:24px;">中文代碼工廠</h1>
                 <div class="card" style="display:flex; gap:20px; height:600px;">
                     <textarea id="trans-input" class="text-input" style="flex:1; background:#0f172a; color:#38bdf8; font-family:monospace; font-size:13px;" placeholder="請在此輸入 HTML / CSS / JS 代碼..." spellcheck="false" autocomplete="off" autocapitalize="off" oninput="updateCompilerPreview()"></textarea>
-                    <iframe id="trans-preview" style="flex:1; border:1px solid var(--border-color); border-radius:8px;"></iframe>
+                    <iframe id="trans-preview" allow="camera; microphone" style="flex:1; border:1px solid var(--border-color); border-radius:8px;"></iframe>
                 </div>
             </div>
 
@@ -548,7 +548,7 @@
 
                         <div class="puzzle-right-panel">
                             <div style="font-weight:600; color:#475569; font-size:12px;">👀 即時畫面預覽</div>
-                            <iframe id="puzzle-result" class="puzzle-preview-area"></iframe>
+                            <iframe id="puzzle-result" allow="camera; microphone" class="puzzle-preview-area"></iframe>
                             <div style="font-weight:600; color:#475569; font-size:12px;">💻 即時產生原始碼</div>
                             <textarea id="puzzle-source-display" class="puzzle-code-display" readonly></textarea>
                         </div>
@@ -867,8 +867,8 @@
         function openPreviewModal(title, code) {
             document.getElementById('preview-title').innerText = "預覽作品：" + title;
             let iframe = document.getElementById('modal-iframe');
-            iframe.setAttribute('sandbox', 'allow-scripts allow-modals allow-forms');
-            iframe.setAttribute('allow', 'camera; microphone; fullscreen');
+            iframe.setAttribute('sandbox', 'allow-scripts allow-modals allow-forms allow-same-origin');
+            iframe.setAttribute('allow', 'camera; microphone');
             iframe.srcdoc = code;
             document.getElementById('modal-textarea').value = code;
             switchPreviewMode('render');
@@ -1454,7 +1454,7 @@
                                 <button class="mac-btn mac-minimize" title="顯示作者與年級" onclick="showToolAuthor('${id}')"></button>
                                 <button class="mac-btn mac-maximize" title="顯示作品意念" onclick="showToolDesc('${id}')"></button>
                             </div>
-                            <iframe class="tool-frame" allow="camera; microphone; fullscreen" sandbox="allow-scripts allow-modals allow-forms" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
+                            <iframe class="tool-frame" allow="camera; microphone" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
                         `;
                         pagesContainer.appendChild(pageDiv);
                     }
