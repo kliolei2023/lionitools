@@ -868,6 +868,7 @@
             document.getElementById('preview-title').innerText = "預覽作品：" + title;
             let iframe = document.getElementById('modal-iframe');
             iframe.setAttribute('sandbox', 'allow-scripts allow-modals allow-forms');
+            iframe.setAttribute('allow', 'camera; microphone; fullscreen');
             iframe.srcdoc = code;
             document.getElementById('modal-textarea').value = code;
             switchPreviewMode('render');
@@ -1453,7 +1454,7 @@
                                 <button class="mac-btn mac-minimize" title="顯示作者與年級" onclick="showToolAuthor('${id}')"></button>
                                 <button class="mac-btn mac-maximize" title="顯示作品意念" onclick="showToolDesc('${id}')"></button>
                             </div>
-                            <iframe class="tool-frame" sandbox="allow-scripts allow-modals allow-forms" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
+                            <iframe class="tool-frame" allow="camera; microphone; fullscreen" sandbox="allow-scripts allow-modals allow-forms" srcdoc="${escapeHtmlAttribute(data.code)}"></iframe>
                         `;
                         pagesContainer.appendChild(pageDiv);
                     }
